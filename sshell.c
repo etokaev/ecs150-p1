@@ -7,8 +7,8 @@
 int main(int argc, char *argv[])  //first line comment//
 {
 	pid_t pid;
-	char *cmd[3] ={"/bin/date -u",".",NULL};
-	int retval;
+	char *cmd[4] ={"/bin/date","-u",NULL};
+	//int retval;
 	int status;
         pid = fork(); 	
         if (pid == 0){
@@ -18,7 +18,7 @@ int main(int argc, char *argv[])  //first line comment//
 		exit(1);
 	} else if (pid>0){
 		/*Parent*/
-		status = waitpid(-1, &status, 0);
+		waitpid(-1, &status, 0);
 		//printif("Child exited with status: %d\n", WEXITSTATUS(status));
 		fprintf(stderr, "+ completed '%s' [%d]\n", cmd[0], status);
 	} else {
