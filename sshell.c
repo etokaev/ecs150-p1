@@ -20,6 +20,10 @@ char* get_input(){
 	return input;
 }
 
+void trimString(char* str){
+	str[strcspn(str,"\n")] = 0;
+} //trims null character at the end of user input
+
 int main(int argc, char *argv[])  //first line comment//
 {
 	//char **command;
@@ -29,12 +33,9 @@ int main(int argc, char *argv[])  //first line comment//
 	while(1){
 			display_prompt();
 			char* lineInput = get_input();
-      lineInput[strcspn(lineInput,"\n")] = 0; //trims null string null terminator
+			trimString(lineInput);
 			char *cmd[] = {lineInput,NULL};
-			//int length =(int) strlen(cmd[0]);
-			//printf("%d\n",length);
-			//printf("%s\n", cmd[2]);
-			//printf("%s\n", lineInput);
+
 			//read_command(command);
 			pid = fork();
 			if (pid != 0){
