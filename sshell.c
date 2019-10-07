@@ -30,7 +30,7 @@ int main(int argc, char *argv[])  //first line comment//
 			display_prompt();
 			char* lineInput = get_input();
       lineInput[strcspn(lineInput,"\n")] = 0; //trims null string null terminator
-			char *cmd[] = {lineInput,"-aux",NULL};
+			char *cmd[] = {lineInput,NULL};
 			//int length =(int) strlen(cmd[0]);
 			//printf("%d\n",length);
 			//printf("%s\n", cmd[2]);
