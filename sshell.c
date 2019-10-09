@@ -11,7 +11,7 @@
 #define MAX_NUM_CHARS 512
 
 struct LinkedList{
-	char arrData[MAX_NUM_ARGS];
+	char* arrData[MAX_NUM_ARGS];
 	struct LinkedList *next;
 };
 
@@ -24,7 +24,7 @@ node createNode(){
 	return temp;
 }
 
-
+/*
 node addNode(node head,char val){
 	node temp1, temp2;
 	temp1 = createNode();
@@ -41,54 +41,29 @@ node addNode(node head,char val){
 	}
 	return head;
 }
+*/
 
 void inputParse(char *lineInput){
+	node headNode = createNode();
+	//if(strlen(lineInput) > 0){
+
+	//}
+	//headNode->arrData[0] = "Hello World";
+	//headNode->arrData[1] = "Bye World";
+	//printf("%s\n", headNode->arrData[0]);
+	//printf("%s\n", headNode->arrData[1]);
 
 	char* token = strtok(lineInput, " ");
 	int i = 0;
 	while(token){
-
-		printf("%2d %s\n",i++,token);
+		//printf("%s\n",token);
+		headNode->arrData[i] = token;
+		printf("%s\n",headNode->arrData[i]);
+		i++;
 		token = strtok(NULL," ");
 	}
+
 }
-
-/*
-void inputParse(char* lineInput){
-
-	char tempArray[31];//SUBSTITUTE TO ACTUAL Array data in LinkedList
-	int inputLen = strlen (lineInput);
-	int start = 0;
-	int end = 0;
-	int arrIndex = 0;//for the nodeW
-	for(int i = 0; i <= inputLen;i++){
-		printf("%d",i);
-		if((lineInput[i] != ' ') && (i != inputLen)){
-			//skip
-		}
-		else{
-			//parsing and saving
-			end = i-1;
-			//tempArray[arrIndex] = substring[start][end];
-			memcpy(tempArray,&lineInput[start], end-start+1);
-
-			arrIndex++;
-		}
-		while(lineInput[i] == ' '){
-			i++;
-			start = i+1;
-		}
-
-	}
-
-
-	for (int j = 0; j < strlen(tempArray);j++){
-		printf("\ntempArr: %c\n",tempArray[j]);
-	}//return array of parsed strings
-}
-
-*/
-
 
 
 int display_prompt(){
