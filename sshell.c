@@ -4,6 +4,53 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <string.h>
+#include <errno.h>
+//#include <linked.h>
+
+#define MAX_NUM_ARGS 16
+#define MAX_NUM_CHARS 512
+
+struct LinkedList{
+	char arrData[MAX_NUM_ARGS];
+	struct LinkedList *next;
+};
+
+typedef struct LinkedList *node;
+
+node createNode(){
+	node temp;
+	temp = (node)malloc(sizeof(struct LinkedList));
+	temp->next = NULL;
+	return temp;
+}
+
+node addNode(node head,char val){
+	node temp1, temp2;
+	temp1 = createNode();
+	temp1->arrData[0] = val;
+	if(head == NULL){
+		head = temp1;
+	}//when empty list
+	else{
+		temp2 = head;
+		while(temp2->next != NULL){
+			temp2 = temp2->next;
+		}
+		temp2->next = temp1;
+	}
+	return head;
+}
+
+/*
+
+char inputParse(){
+
+	return array of parsed strings
+}
+
+*/
+
+
 
 int display_prompt(){
 
@@ -15,9 +62,14 @@ int display_prompt(){
 char* get_input(){
 
   char* input;
-	input = (char*)malloc(513);
-	fgets(input,513,stdin);
+	input = (char*)malloc(MAX_NUM_CHARS + 1);
+	fgets(input,MAX_NUM_CHARS + 1,stdin);
 	return input;
+}
+
+int checkErrors(char* lineIn){
+
+	return 0;
 }
 
 void trimString(char* str){
@@ -26,7 +78,6 @@ void trimString(char* str){
 
 int main(int argc, char *argv[])  //first line comment//
 {
-	//char **command;
 
 	int status = 0;
 	pid_t pid;
@@ -45,7 +96,7 @@ int main(int argc, char *argv[])  //first line comment//
 				//exit(0);
 			} else { //FIND OUT why not printing inside child
 					execvp(cmd[0],cmd);
-
+					printf("\n here is the error: %d\n",(errno));
 					//execv(command[0],command);
 					perror("execvp");
 					exit(1);
