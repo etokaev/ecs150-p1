@@ -19,15 +19,16 @@ typedef struct LinkedList *node;
 
 node createNode(){
 	node temp;
-	temp = (node)malloc(sizeof(struct LinkedList));
+	temp = (node)malloc(sizeof(struct LinkedList)*MAX_NUM_ARGS);
 	temp->next = NULL;
 	return temp;
 }
 
+
 node addNode(node head,char val){
 	node temp1, temp2;
 	temp1 = createNode();
-	temp1->arrData[0] = val;
+	temp1->arrData[0] = val; //FIXME WHEN GET TO PIPE
 	if(head == NULL){
 		head = temp1;
 	}//when empty list
@@ -41,11 +42,49 @@ node addNode(node head,char val){
 	return head;
 }
 
+void inputParse(char *lineInput){
+
+	char* token = strtok(lineInput, " ");
+	int i = 0;
+	while(token){
+
+		printf("%2d %s\n",i++,token);
+		token = strtok(NULL," ");
+	}
+}
+
 /*
+void inputParse(char* lineInput){
 
-char inputParse(){
+	char tempArray[31];//SUBSTITUTE TO ACTUAL Array data in LinkedList
+	int inputLen = strlen (lineInput);
+	int start = 0;
+	int end = 0;
+	int arrIndex = 0;//for the nodeW
+	for(int i = 0; i <= inputLen;i++){
+		printf("%d",i);
+		if((lineInput[i] != ' ') && (i != inputLen)){
+			//skip
+		}
+		else{
+			//parsing and saving
+			end = i-1;
+			//tempArray[arrIndex] = substring[start][end];
+			memcpy(tempArray,&lineInput[start], end-start+1);
 
-	return array of parsed strings
+			arrIndex++;
+		}
+		while(lineInput[i] == ' '){
+			i++;
+			start = i+1;
+		}
+
+	}
+
+
+	for (int j = 0; j < strlen(tempArray);j++){
+		printf("\ntempArr: %c\n",tempArray[j]);
+	}//return array of parsed strings
 }
 
 */
@@ -87,6 +126,7 @@ int main(int argc, char *argv[])  //first line comment//
 			trimString(lineInput);
 			char *cmd[] = {lineInput,NULL};
 
+			inputParse(lineInput);
 			//read_command(command);
 			pid = fork();
 			if (pid != 0){
