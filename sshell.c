@@ -43,26 +43,18 @@ node addNode(node head,char val){
 }
 */
 
-void inputParse(char *lineInput){
-	node headNode = createNode();
-	//if(strlen(lineInput) > 0){
-
-	//}
-	//headNode->arrData[0] = "Hello World";
-	//headNode->arrData[1] = "Bye World";
-	//printf("%s\n", headNode->arrData[0]);
-	//printf("%s\n", headNode->arrData[1]);
+void inputParse(char *lineInput, node *headNode){
 
 	char* token = strtok(lineInput, " ");
 	int i = 0;
 	while(token){
 		//printf("%s\n",token);
-		headNode->arrData[i] = token;
-		printf("%s\n",headNode->arrData[i]);
+		(*headNode)->arrData[i] = token;
+		printf("%s\n",(*headNode)->arrData[i]);
 		i++;
 		token = strtok(NULL," ");
 	}
-
+	//return headNode;
 }
 
 
@@ -92,16 +84,17 @@ void trimString(char* str){
 
 int main(int argc, char *argv[])  //first line comment//
 {
-
+	node headNode = createNode();
 	int status = 0;
 	pid_t pid;
+
 	while(1){
 			display_prompt();
 			char* lineInput = get_input();
 			trimString(lineInput);
 			char *cmd[] = {lineInput,NULL};
 
-			inputParse(lineInput);
+			inputParse(lineInput, &headNode);
 			//read_command(command);
 			pid = fork();
 			if (pid != 0){
