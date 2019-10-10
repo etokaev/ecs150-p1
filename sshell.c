@@ -9,6 +9,8 @@
 
 #define MAX_NUM_ARGS 16
 #define MAX_NUM_CHARS 512
+int isError = 0;
+
 
 struct LinkedList{
 	char* arrData[MAX_NUM_ARGS];
@@ -48,6 +50,11 @@ void inputParse(char *lineInput, node *headNode){
 	char* token = strtok(lineInput, " ");
 	int i = 0;
 	while(token){
+		if(i > 15){
+			fprintf(stderr, "%s\n","Error: too many process arguments" );
+			isError = 1;
+			//exit(0);
+		}
 		//printf("%s\n",token);
 		(*headNode)->arrData[i] = token;
 		//printf("%s\n",(*headNode)->arrData[i]);
@@ -84,28 +91,32 @@ void trimString(char* str){
 
 int main(int argc, char *argv[])  //first line comment//
 {
-	node headNode = createNode();
+
 	int status = 0;
 	pid_t pid;
 
 	while(1){
+			isError = 0;
+			node headNode = createNode();
+
 			display_prompt();
 			char* lineInput = get_input();
 			trimString(lineInput);
 			inputParse(lineInput, &headNode);
-			//char *cmd[51] = { *(headNode)->arrData,NULL};
 			//printf("\ncmd[0] = %s\n",*cmd[0]);
 
-			//printf("%c", headNode->arrData[0]);//SEGFAULT
-			//printf("%c", headNode->arrData[1]);
 			//read_command(command);
 			pid = fork();
 			if (pid != 0){
 				/*Parent*/
 				waitpid(-1, &status, 0);
-				fprintf(stderr, "+ completed '%s' [%d]\n", "ls", status);
+				//fprintf(stderr, "+ completed '%s' [%d]\n", *(headNode)->arrData, status);
 				//exit(0);
 			} else { //FIND OUT why not printing inside child
+					if(isError == 1){
+						//reset global error checker
+						exit(0);
+					}
 					execvp(*(headNode)->arrData,(headNode)->arrData);
 					printf("\n here is the error: %d\n",(errno));
 					//execv(command[0],command);
