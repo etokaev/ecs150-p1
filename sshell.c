@@ -50,7 +50,7 @@ void inputParse(char *lineInput, node *headNode){
 	while(token){
 		//printf("%s\n",token);
 		(*headNode)->arrData[i] = token;
-		printf("%s\n",(*headNode)->arrData[i]);
+		//printf("%s\n",(*headNode)->arrData[i]);
 		i++;
 		token = strtok(NULL," ");
 	}
@@ -92,9 +92,12 @@ int main(int argc, char *argv[])  //first line comment//
 			display_prompt();
 			char* lineInput = get_input();
 			trimString(lineInput);
-			char *cmd[] = {lineInput,NULL};
-
 			inputParse(lineInput, &headNode);
+			//char *cmd[51] = { *(headNode)->arrData,NULL};
+			//printf("\ncmd[0] = %s\n",*cmd[0]);
+
+			//printf("%c", headNode->arrData[0]);//SEGFAULT
+			//printf("%c", headNode->arrData[1]);
 			//read_command(command);
 			pid = fork();
 			if (pid != 0){
@@ -103,7 +106,7 @@ int main(int argc, char *argv[])  //first line comment//
 				fprintf(stderr, "+ completed '%s' [%d]\n", "ls", status);
 				//exit(0);
 			} else { //FIND OUT why not printing inside child
-					execvp(cmd[0],cmd);
+					execvp(*(headNode)->arrData,(headNode)->arrData);
 					printf("\n here is the error: %d\n",(errno));
 					//execv(command[0],command);
 					perror("execvp");
