@@ -122,14 +122,15 @@ void isCD(node headNode){
 
 	char strCD[] = "cd";
 	int result = strcmp(*(headNode)->arrData,strCD);
-
-
 	if(result == 0){
-		isInterrupt = 1;
-		chdir(headNode->arrData[1]);
-		//printf("It is CD haha\n");
-	}
 
+		isInterrupt = 1;
+		if(chdir(headNode->arrData[1]) == 0){
+		}
+		else{
+			fprintf(stderr, "%s\n","Error: no such directory");
+		}
+	}
 }
 
 
