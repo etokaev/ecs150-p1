@@ -5,6 +5,8 @@
 #include <sys/wait.h>
 #include <string.h>
 #include <errno.h>
+#include<sys/stat.h>
+#include <fcntl.h>
 //#include <linked.h>
 
 #define MAX_NUM_ARGS 16
@@ -33,9 +35,9 @@ int cmprStr(node headNode, char *str1){
 
 int arrDataSearch(node headNode, char* token){
 
-	int sizeArrData = sizeof(headNode->arrData);
-	int size = sizeArrData/sizeof(headNode->arrData[0]);
-	printf("%d\n",size);
+	//int sizeArrData = sizeof(headNode->arrData);
+	//int size = sizeArrData/sizeof(headNode->arrData[0]);
+	//printf("%d\n",size);
 	int i = 0;
 	while(headNode->arrData[i] != NULL){
 		if(strcmp(headNode->arrData[i],token) == 0){
@@ -46,7 +48,7 @@ int arrDataSearch(node headNode, char* token){
 		i++;
 	}
 
-	return 0;
+	return -1;
 }
 
 /*
@@ -155,6 +157,40 @@ void builtinCommands(node headNode){
 
 void inputRedir(node headNode){
 
+	int i = arrDataSearch(headNode, "<");
+	//fprintf(stdout, "inside inputRedit, i = %d\n", i);
+	if (i != -1){ //found "<" in arrData[i]
+		if(i == 0){ //lineInput starts with "<"
+			fprintf(stderr, "%s\n","Error: missing command" );
+			isError = 1;
+		}
+
+		// char *tempArr[i];
+		// for(int j = 0; j < i; j++){
+		// 	tempArr[j] = headNode->arrData[j]; //tempArr holds args before from inputLine before "<"
+		// 	fprintf(stdout, "tempArr[%d] = %s\n", j, tempArr[j]);
+		// }
+		// char *fileName = headNode->arrData[i + 1];
+		// printf("filename after '<' : %s\n", fileName);
+		//
+		// int fd[2];
+		// pipe(fd); /* Create pipe */
+		// if (fork() != 0) {
+		// 	int fd_fileName = open(fileName, O_RDONLY);
+		// 	printf("fd_fileName: %d\n", fd_fileName);
+		// 	close(fd[0]); /* Don't need read access to pipe */
+		// 	dup2(fd[1], STDOUT_FILENO); /* Replace stdout with the pipe */
+		// 	close(fd[1]); /* Close now unused file descriptor */
+		//
+		// 	//fgets(input,MAX_NUM_CHARS + 1,stdin);
+		// 	char buf[256];
+		// 	char *cmd[] = {"read", fileName, buf, "256"};
+		// 	execvp(*cmd, cmd);
+		// }
+
+	}
+
+
 	if(cmprStr(headNode,"<") == 0){
 
 	}
@@ -177,13 +213,13 @@ int main(int argc, char *argv[])  //first line comment//
 			node headNode = createNode();
 
 			display_prompt();
-			char* lineInput = get_input();
+			char *lineInput = get_input();
 			trimString(lineInput);
 			inputParse(lineInput, &headNode);
 
-			arrDataSearch(headNode,"<");
+			//arrDataSearch(headNode,"<");
 			builtinCommands(headNode);
-			//inputRedir(headNode);
+			inputRedir(headNode);
 			//printArrData(headNode);
 
 			//read_command(command);
@@ -191,7 +227,9 @@ int main(int argc, char *argv[])  //first line comment//
 			if (pid != 0){
 				/*Parent*/
 				waitpid(-1, &status, 0);
-				//fprintf(stderr, "+ completed '%s' [%d]\n", *(headNode)->arrData, status);
+
+
+				fprintf(stderr, "+ completed '%s' [%d]\n", lineInput, status);
 				//exit(0);
 			} else { //FIND OUT why not printing inside child
 					if(isError == 1 || isInterrupt == 1){
@@ -202,7 +240,7 @@ int main(int argc, char *argv[])  //first line comment//
 					//execv(command[0],command);
 					perror("execvp");
 					exit(1);
-				//fprintf(stderr, "+ completed '%s' [%d]\n", "ls", status);
+				  //fprintf(stderr, "+ completed '%s' [%d]\n", "ls", status);
 			}
 	}
 
