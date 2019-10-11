@@ -85,6 +85,15 @@ int checkErrors(char* lineIn){
 	return 0;
 }
 
+void isExit(node headNode){
+	char strExit[] = "exit";
+	//printf("in headNode");
+  int result = strcmp(*(headNode)->arrData,strExit);
+	if(result == 0){
+		fprintf(stderr, "%s\n","Bye..." );
+		exit(0);
+	}
+}
 void trimString(char* str){
 	str[strcspn(str,"\n")] = 0;
 } //trims null character at the end of user input
@@ -104,6 +113,8 @@ int main(int argc, char *argv[])  //first line comment//
 			trimString(lineInput);
 			inputParse(lineInput, &headNode);
 			//printf("\ncmd[0] = %s\n",*cmd[0]);
+			isExit(headNode);
+
 
 			//read_command(command);
 			pid = fork();
