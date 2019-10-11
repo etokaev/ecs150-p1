@@ -10,7 +10,7 @@
 #define MAX_NUM_ARGS 16
 #define MAX_NUM_CHARS 512
 int isError = 0;
-
+int isInterrupt = 0;
 
 struct LinkedList{
 	char* arrData[MAX_NUM_ARGS];
@@ -94,6 +94,46 @@ void isExit(node headNode){
 		exit(0);
 	}
 }
+
+void isPwd(node headNode){
+	char strPwd[] = "pwd";
+	char cwd[MAX_NUM_CHARS];
+
+	int result = strcmp(*(headNode)->arrData,strPwd);
+	if(result == 0){
+		getcwd(cwd,sizeof(cwd));
+		printf("%s",cwd);
+		printf("\n");
+		isInterrupt = 1;//to prevent execvp from running pwd
+	}
+
+}
+
+void printArrData(node headNode){
+
+	printf("inside printArrData, length: %ld\n",strlen(*(headNode)->arrData));
+	for (int i = 0; i < 16; i++){
+		printf("element number %d: %s\n",i,headNode->arrData[i]);
+	}
+}
+
+
+void isCD(node headNode){
+
+	char strCD[] = "cd";
+	int result = strcmp(*(headNode)->arrData,strCD);
+
+
+	if(result == 0){
+		isInterrupt = 1;
+		chdir(headNode->arrData[1]);
+		//printf("It is CD haha\n");
+	}
+
+}
+
+
+
 void trimString(char* str){
 	str[strcspn(str,"\n")] = 0;
 } //trims null character at the end of user input
@@ -106,15 +146,18 @@ int main(int argc, char *argv[])  //first line comment//
 
 	while(1){
 			isError = 0;
+			isInterrupt = 0;
 			node headNode = createNode();
 
 			display_prompt();
 			char* lineInput = get_input();
 			trimString(lineInput);
 			inputParse(lineInput, &headNode);
-			//printf("\ncmd[0] = %s\n",*cmd[0]);
-			isExit(headNode);
 
+			isExit(headNode);
+			isPwd(headNode);
+			isCD(headNode);//FIXME combine these three into one function)
+			//printArrData(headNode);
 
 			//read_command(command);
 			pid = fork();
@@ -124,8 +167,7 @@ int main(int argc, char *argv[])  //first line comment//
 				//fprintf(stderr, "+ completed '%s' [%d]\n", *(headNode)->arrData, status);
 				//exit(0);
 			} else { //FIND OUT why not printing inside child
-					if(isError == 1){
-						//reset global error checker
+					if(isError == 1 || isInterrupt == 1){
 						exit(0);
 					}
 					execvp(*(headNode)->arrData,(headNode)->arrData);
