@@ -26,6 +26,29 @@ node createNode(){
 	return temp;
 }
 
+int cmprStr(node headNode, char *str1){
+	int result = strcmp(headNode->arrData[0],str1);
+	return result;
+}
+
+int arrDataSearch(node headNode, char* token){
+
+	int sizeArrData = sizeof(headNode->arrData);
+	int size = sizeArrData/sizeof(headNode->arrData[0]);
+	printf("%d\n",size);
+	int i = 0;
+	while(headNode->arrData[i] != NULL){
+		if(strcmp(headNode->arrData[i],token) == 0){
+				//found token
+				printf("found token: %d\n",i);
+				return i;
+		}
+		i++;
+	}
+
+	return 0;
+}
+
 /*
 node addNode(node head,char val){
 	node temp1, temp2;
@@ -80,27 +103,21 @@ char* get_input(){
 	return input;
 }
 
-int checkErrors(char* lineIn){
 
-	return 0;
-}
+
 
 void isExit(node headNode){
-	char strExit[] = "exit";
-	//printf("in headNode");
-  int result = strcmp(*(headNode)->arrData,strExit);
-	if(result == 0){
+
+	if(cmprStr(headNode,"exit") == 0){
 		fprintf(stderr, "%s\n","Bye..." );
 		exit(0);
 	}
 }
 
 void isPwd(node headNode){
-	char strPwd[] = "pwd";
 	char cwd[MAX_NUM_CHARS];
 
-	int result = strcmp(*(headNode)->arrData,strPwd);
-	if(result == 0){
+	if(cmprStr(headNode,"pwd") == 0){
 		getcwd(cwd,sizeof(cwd));
 		printf("%s",cwd);
 		printf("\n");
@@ -112,7 +129,7 @@ void isPwd(node headNode){
 void printArrData(node headNode){
 
 	printf("inside printArrData, length: %ld\n",strlen(*(headNode)->arrData));
-	for (int i = 0; i < 16; i++){
+	for (int i = 0; i < MAX_NUM_ARGS; i++){
 		printf("element number %d: %s\n",i,headNode->arrData[i]);
 	}
 }
@@ -120,19 +137,28 @@ void printArrData(node headNode){
 
 void isCD(node headNode){
 
-	char strCD[] = "cd";
-	int result = strcmp(*(headNode)->arrData,strCD);
-	if(result == 0){
-
+	if(cmprStr(headNode,"cd") == 0){
 		isInterrupt = 1;
 		if(chdir(headNode->arrData[1]) == 0){
-		}
-		else{
+		} else{
 			fprintf(stderr, "%s\n","Error: no such directory");
 		}
 	}
 }
 
+void builtinCommands(node headNode){
+	isExit(headNode);
+	isPwd(headNode);
+	isCD(headNode);
+}
+
+
+void inputRedir(node headNode){
+
+	if(cmprStr(headNode,"<") == 0){
+
+	}
+}
 
 
 void trimString(char* str){
@@ -155,9 +181,9 @@ int main(int argc, char *argv[])  //first line comment//
 			trimString(lineInput);
 			inputParse(lineInput, &headNode);
 
-			isExit(headNode);
-			isPwd(headNode);
-			isCD(headNode);//FIXME combine these three into one function)
+			arrDataSearch(headNode,"<");
+			builtinCommands(headNode);
+			//inputRedir(headNode);
 			//printArrData(headNode);
 
 			//read_command(command);
