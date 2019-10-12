@@ -73,28 +73,8 @@ node addNode(node head,char val){
 void inputParse(char *lineInput, node *headNode){
 
 
-	char* tokenRedir = strtok(lineInput, "<");
-	int j = 0;
-	char *cmdStr;
-	char *fileName;
-	while(tokenRedir){
 
-		if(j ==0){
-			cmdStr = tokenRedir;
-			tokenRedir = strtok(NULL,"<");
-		}else if(j == 1){
-			fileName = tokenRedir;
-		}else{
-			break;
-		}
-		j++;
-
-	}
-
-	// printf("cmdStr is %s\n", cmdStr);
-	// printf("LileName is %s\n", fileName);
-
-	char* token = strtok(cmdStr, " ");
+	char* token = strtok(lineInput, " ");
 	int i = 0;
 	while(token){
 		if(i > 15){
@@ -109,17 +89,10 @@ void inputParse(char *lineInput, node *headNode){
 		token = strtok(NULL," ");
 	}
 
-	int fd = open(fileName, 0);
-	dup2(fd, STDIN_FILENO);
-	close(fd);
-
-
-
-
-
-
 	//return headNode;
 }
+
+
 
 
 int display_prompt(){
@@ -187,46 +160,74 @@ void builtinCommands(node headNode){
 }
 
 
-void inputRedir(node headNode){
+void trimLeading(char * str)
+{
+    int index, i;
 
-	int i = arrDataSearch(headNode, "<");
-	//fprintf(stdout, "inside inputRedit, i = %d\n", i);
-	if (i != -1){ //found "<" in arrData[i]
-		if(i == 0){ //lineInput starts with "<"
-			fprintf(stderr, "%s\n","Error: missing command" );
-			isError = 1;
-		}
+    index = 0;
 
-		// char *tempArr[i];
-		// for(int j = 0; j < i; j++){
-		// 	tempArr[j] = headNode->arrData[j]; //tempArr holds args before from inputLine before "<"
-		// 	fprintf(stdout, "tempArr[%d] = %s\n", j, tempArr[j]);
-		// }
-		// char *fileName = headNode->arrData[i + 1];
-		// printf("filename after '<' : %s\n", fileName);
-		//
-		// int fd[2];
-		// pipe(fd); /* Create pipe */
-		// if (fork() != 0) {
-		// 	int fd_fileName = open(fileName, O_RDONLY);
-		// 	printf("fd_fileName: %d\n", fd_fileName);
-		// 	close(fd[0]); /* Don't need read access to pipe */
-		// 	dup2(fd[1], STDOUT_FILENO); /* Replace stdout with the pipe */
-		// 	close(fd[1]); /* Close now unused file descriptor */
-		//
-		// 	//fgets(input,MAX_NUM_CHARS + 1,stdin);
-		// 	char buf[256];
-		// 	char *cmd[] = {"read", fileName, buf, "256"};
-		// 	execvp(*cmd, cmd);
-		// }
-
-	}
+    /* Find last index of whitespace character */
+    while(str[index] == ' ' || str[index] == '\t' || str[index] == '\n')
+    {
+        index++;
+    }
 
 
-	if(cmprStr(headNode,"<") == 0){
+    if(index != 0)
+    {
+        /* Shit all trailing characters to its left */
+        i = 0;
+        while(str[i + index] != '\0')
+        {
+            str[i] = str[i + index];
+            i++;
+        }
+        str[i] = '\0'; // Make sure that string is NULL terminated
+    }
+}//FIXME https://codeforwin.org/2016/04/c-program-to-trim-leading-white-spaces-in-string.html
 
+void trimAll(char* str){
+	int index;
+	while(str[index] == ' '){
+		trimLeading(str);
+		index++;
 	}
 }
+
+
+char* inputRedir(char* lineInput){
+	//
+	// int i = arrDataSearch(headNode, "<");
+	// //fprintf(stdout, "inside inputRedit, i = %d\n", i);
+	// if (i != -1){ //found "<" in arrData[i]
+	// 	if(i == 0){ //lineInput starts with "<"
+	// 		fprintf(stderr, "%s\n","Error: missing command" );
+	// 		isError = 1;
+	// 	}
+
+
+		char* tokenRedir = strtok(lineInput, "<");
+		int j = 0;
+		//char *cmdStr;
+		char *fileName;
+		while(tokenRedir){
+
+			if(j == 0){
+				//cmdStr = tokenRedir;
+				tokenRedir = strtok(NULL,"<");
+			}else if(j == 1){
+				fileName = tokenRedir;
+			}else{
+				break;
+			}
+			j++;
+			//printf("FileName is %s\n", fileName);
+
+		}//extracts filename from lineInput
+		trimLeading(fileName);
+		return fileName;
+}
+
 
 
 void trimString(char* str){
@@ -243,21 +244,18 @@ int main(int argc, char *argv[])  //first line comment//
 			isError = 0;
 			isInterrupt = 0;
 			node headNode = createNode();
-
 			display_prompt();
 			char *lineInput = get_input();
-			//char *lineInputCopy[256];
+			char fileName[512];
 
-			trimString(lineInput);
-			// memset(lineInputCopy, '\0', sizeof(lineInputCopy));
-			// strcpy(lineInputCopy, lineInput);
-			// printf("lineInputCopy: %s", lineInputCopy);
+			trimAll(lineInput);
+
+			strcpy(fileName, inputRedir(lineInput));
+
 			inputParse(lineInput, &headNode);
 
-			//arrDataSearch(headNode,"<");
 			builtinCommands(headNode);
-			inputRedir(headNode);
-			//printArrData(headNode);
+
 
 			//read_command(command);
 			pid = fork();
@@ -272,6 +270,13 @@ int main(int argc, char *argv[])  //first line comment//
 					if(isError == 1 || isInterrupt == 1){
 						exit(0);
 					}
+
+					trimString(fileName);
+					int fd = open(fileName, 0);
+					dup2(fd, 0);
+					close(fd);
+					//printf("%s\n",fileName);
+
 					execvp(*(headNode)->arrData,(headNode)->arrData);
 					printf("\n here is the error: %d\n",(errno));
 					//execv(command[0],command);
