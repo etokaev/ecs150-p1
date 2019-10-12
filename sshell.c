@@ -219,7 +219,7 @@ char* inputRedir(char* lineInput, char* delim){
 				break;
 			}
 			j++;
-			printf("FileName is %s\n", fileName);
+			//printf("FileName is %s\n", fileName);
 
 		}//extracts filename from lineInput
 		trimLeading(fileName);
@@ -244,15 +244,18 @@ int checkRedirSymbol(char* lineInputCopy){
 	char*ptr;
 	ptr = lineInputCopy;
 	while(*ptr!='\0'){
-		printf("\nlineInput equals: -------------%c\n",*ptr++);
+		ptr++;
 		if(*ptr=='>'){
 			return 1;
 		}
+		else if(*ptr == '<'){
+			return 2;
+		}
 	}
-	printf("\n");
-	char* redirSymbol;
-	redirSymbol = strchr(lineInputCopy,'<');
-	printf("RedirSymbol is: %s\n",redirSymbol);
+	//printf("\n");
+	//char* redirSymbol;
+	//redirSymbol = strchr(lineInputCopy,'<');
+	//printf("RedirSymbol is: %s\n",redirSymbol);
 	// if(redirSymbol != NULL){
 	// 	return 1;
 	// 	}
@@ -298,9 +301,12 @@ int main(int argc, char *argv[])  //first line comment//
 						exit(0);
 					}
 
-					printf("strchr result: %d\n", checkRedirSymbol(lineInput));
+					//checks for input redirection
 					if(checkRedirSymbol(lineInputCopy) == 1){
 						redirSTDOUT(fileName);
+					}
+					else if(checkRedirSymbol(lineInputCopy) == 2){
+						redirSTDIN(fileName);
 					}
 
 					execvp(*(headNode)->arrData,(headNode)->arrData);
