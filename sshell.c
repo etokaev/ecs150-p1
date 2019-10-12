@@ -159,6 +159,10 @@ void builtinCommands(node headNode){
 	isCD(headNode);
 }
 
+void trimEndNull(char* str){
+	str[strcspn(str,"\n")] = 0;
+} //trims null character at the end of user input
+
 
 void trimLeading(char * str)
 {
@@ -192,7 +196,8 @@ void trimAll(char* str){
 		trimLeading(str);
 		index++;
 	}
-}
+	trimEndNull(str);
+}//trims all the spaces in the front and the null terminator
 
 
 char* inputRedir(char* lineInput){
@@ -227,12 +232,12 @@ char* inputRedir(char* lineInput){
 		trimLeading(fileName);
 		return fileName;
 }
+void redirSTDIN(char* fileName){
 
-
-
-void trimString(char* str){
-	str[strcspn(str,"\n")] = 0;
-} //trims null character at the end of user input
+	int fd = open(fileName, 0);
+	dup2(fd, 0);
+	close(fd);
+}
 
 int main(int argc, char *argv[])  //first line comment//
 {
@@ -271,10 +276,10 @@ int main(int argc, char *argv[])  //first line comment//
 						exit(0);
 					}
 
-					trimString(fileName);
-					int fd = open(fileName, 0);
-					dup2(fd, 0);
-					close(fd);
+					redirSTDIN(fileName);
+					// int fd = open(fileName, 0);
+					// dup2(fd, 0);
+					// close(fd);
 					//printf("%s\n",fileName);
 
 					execvp(*(headNode)->arrData,(headNode)->arrData);
