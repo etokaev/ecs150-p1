@@ -190,6 +190,7 @@ void trimLeading(char * str)
     }
 }//FIXME https://codeforwin.org/2016/04/c-program-to-trim-leading-white-spaces-in-string.html
 
+/*
 void trimAll(char* str){
 	int index;
 	while(str[index] == ' '){
@@ -198,9 +199,9 @@ void trimAll(char* str){
 	}
 	trimEndNull(str);
 }//trims all the spaces in the front and the null terminator
+*/
 
-
-char* inputRedir(char* lineInput){
+char* inputRedir(char* lineInput, char* delim){
 	//
 	// int i = arrDataSearch(headNode, "<");
 	// //fprintf(stdout, "inside inputRedit, i = %d\n", i);
@@ -211,7 +212,7 @@ char* inputRedir(char* lineInput){
 	// 	}
 
 
-		char* tokenRedir = strtok(lineInput, "<");
+		char* tokenRedir = strtok(lineInput, delim);
 		int j = 0;
 		//char *cmdStr;
 		char *fileName;
@@ -219,14 +220,14 @@ char* inputRedir(char* lineInput){
 
 			if(j == 0){
 				//cmdStr = tokenRedir;
-				tokenRedir = strtok(NULL,"<");
+				tokenRedir = strtok(NULL,delim);
 			}else if(j == 1){
 				fileName = tokenRedir;
 			}else{
 				break;
 			}
 			j++;
-			//printf("FileName is %s\n", fileName);
+			printf("FileName is %s\n", fileName);
 
 		}//extracts filename from lineInput
 		trimLeading(fileName);
@@ -236,6 +237,13 @@ void redirSTDIN(char* fileName){
 
 	int fd = open(fileName, 0);
 	dup2(fd, 0);
+	close(fd);
+}
+
+void redirSTDOUT(char* fileName){
+
+	int fd = open(fileName, O_RDWR);
+	dup2(fd, STDOUT_FILENO);
 	close(fd);
 }
 
@@ -253,9 +261,8 @@ int main(int argc, char *argv[])  //first line comment//
 			char *lineInput = get_input();
 			char fileName[512];
 
-			trimAll(lineInput);
-
-			strcpy(fileName, inputRedir(lineInput));
+			trimEndNull(lineInput);
+			strcpy(fileName, inputRedir(lineInput,"<>"));
 
 			inputParse(lineInput, &headNode);
 
@@ -276,7 +283,7 @@ int main(int argc, char *argv[])  //first line comment//
 						exit(0);
 					}
 
-					redirSTDIN(fileName);
+					redirSTDOUT(fileName);
 					// int fd = open(fileName, 0);
 					// dup2(fd, 0);
 					// close(fd);
