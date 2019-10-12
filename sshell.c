@@ -72,7 +72,29 @@ node addNode(node head,char val){
 
 void inputParse(char *lineInput, node *headNode){
 
-	char* token = strtok(lineInput, " ");
+
+	char* tokenRedir = strtok(lineInput, "<");
+	int j = 0;
+	char *cmdStr;
+	char *fileName;
+	while(tokenRedir){
+
+		if(j ==0){
+			cmdStr = tokenRedir;
+			tokenRedir = strtok(NULL,"<");
+		}else if(j == 1){
+			fileName = tokenRedir;
+		}else{
+			break;
+		}
+		j++;
+
+	}
+
+	// printf("cmdStr is %s\n", cmdStr);
+	// printf("LileName is %s\n", fileName);
+
+	char* token = strtok(cmdStr, " ");
 	int i = 0;
 	while(token){
 		if(i > 15){
@@ -86,6 +108,16 @@ void inputParse(char *lineInput, node *headNode){
 		i++;
 		token = strtok(NULL," ");
 	}
+
+	int fd = open(fileName, 0);
+	dup2(fd, STDIN_FILENO);
+	close(fd);
+
+
+
+
+
+
 	//return headNode;
 }
 
@@ -214,7 +246,12 @@ int main(int argc, char *argv[])  //first line comment//
 
 			display_prompt();
 			char *lineInput = get_input();
+			//char *lineInputCopy[256];
+
 			trimString(lineInput);
+			// memset(lineInputCopy, '\0', sizeof(lineInputCopy));
+			// strcpy(lineInputCopy, lineInput);
+			// printf("lineInputCopy: %s", lineInputCopy);
 			inputParse(lineInput, &headNode);
 
 			//arrDataSearch(headNode,"<");
