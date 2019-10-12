@@ -13,6 +13,7 @@
 #define MAX_NUM_CHARS 512
 int isError = 0;
 int isInterrupt = 0;
+//char* checkRedir[10];
 
 struct LinkedList{
 	char* arrData[MAX_NUM_ARGS];
@@ -202,15 +203,6 @@ void trimAll(char* str){
 */
 
 char* inputRedir(char* lineInput, char* delim){
-	//
-	// int i = arrDataSearch(headNode, "<");
-	// //fprintf(stdout, "inside inputRedit, i = %d\n", i);
-	// if (i != -1){ //found "<" in arrData[i]
-	// 	if(i == 0){ //lineInput starts with "<"
-	// 		fprintf(stderr, "%s\n","Error: missing command" );
-	// 		isError = 1;
-	// 	}
-
 
 		char* tokenRedir = strtok(lineInput, delim);
 		int j = 0;
@@ -247,6 +239,27 @@ void redirSTDOUT(char* fileName){
 	close(fd);
 }
 
+int checkRedirSymbol(char* lineInputCopy){
+
+	char*ptr;
+	ptr = lineInputCopy;
+	while(*ptr!='\0'){
+		printf("\nlineInput equals: -------------%c\n",*ptr++);
+		if(*ptr=='>'){
+			return 1;
+		}
+	}
+	printf("\n");
+	char* redirSymbol;
+	redirSymbol = strchr(lineInputCopy,'<');
+	printf("RedirSymbol is: %s\n",redirSymbol);
+	// if(redirSymbol != NULL){
+	// 	return 1;
+	// 	}
+	return 0;
+
+}
+
 int main(int argc, char *argv[])  //first line comment//
 {
 
@@ -260,6 +273,8 @@ int main(int argc, char *argv[])  //first line comment//
 			display_prompt();
 			char *lineInput = get_input();
 			char fileName[512];
+			char lineInputCopy[512];
+			strcpy(lineInputCopy, lineInput);
 
 			trimEndNull(lineInput);
 			strcpy(fileName, inputRedir(lineInput,"<>"));
@@ -283,11 +298,10 @@ int main(int argc, char *argv[])  //first line comment//
 						exit(0);
 					}
 
-					redirSTDOUT(fileName);
-					// int fd = open(fileName, 0);
-					// dup2(fd, 0);
-					// close(fd);
-					//printf("%s\n",fileName);
+					printf("strchr result: %d\n", checkRedirSymbol(lineInput));
+					if(checkRedirSymbol(lineInputCopy) == 1){
+						redirSTDOUT(fileName);
+					}
 
 					execvp(*(headNode)->arrData,(headNode)->arrData);
 					printf("\n here is the error: %d\n",(errno));
