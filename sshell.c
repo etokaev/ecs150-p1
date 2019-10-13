@@ -52,11 +52,11 @@ int arrDataSearch(node headNode, char* token){
 	return -1;
 }
 
-/*
-node addNode(node head,char val){
+
+node addNode(node head){
 	node temp1, temp2;
 	temp1 = createNode();
-	temp1->arrData[0] = val; //FIXME WHEN GET TO PIPE
+	//temp1->arrData[0] = val; //FIXME WHEN GET TO PIPE
 	if(head == NULL){
 		head = temp1;
 	}//when empty list
@@ -69,7 +69,7 @@ node addNode(node head,char val){
 	}
 	return head;
 }
-*/
+
 
 void inputParse(char *lineInput, node *headNode){
 
@@ -270,9 +270,12 @@ int main(int argc, char *argv[])  //first line comment//
 	pid_t pid;
 
 	while(1){
-			isError = 0;
-			isInterrupt = 0;
+			int isError = 0;
+			int isInterrupt = 0;
 			node headNode = createNode();
+			//addNode(headNode);
+			//headNode->next->arrData[0] = "test";
+			printf("%s\n", headNode->next->arrData[0]);
 			display_prompt();
 			char *lineInput = get_input();
 			char fileName[512];
