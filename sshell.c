@@ -93,24 +93,6 @@ void inputParse(char *lineInput, node *headNode){ // ANY NODE works
 	//return headNode;
 }
 
-void pipeParse(char* lineInput, node *headNode){
-
-	struct LinkedList* currNode = *headNode;
-	char* rest = lineInput;
-	char* token = strtok_r(rest, "|",&rest);
-	int i = 0;
-	while(token){
-		addNode(*headNode);
-		while(currNode->next != NULL){
-			currNode = currNode->next;
-		}
-		printf("Pipe#%d: %s\n",i+1,token);
-		inputParse(token, &currNode);//inserting parsed commands into LinkedList
-		token = strtok_r(NULL,"|",&rest);
-		i++;
-		
-	}
-}
 
 
 int display_prompt(){
@@ -279,6 +261,29 @@ int checkRedirSymbol(char* lineInputCopy){
 	return 0;
 
 }
+
+
+
+void pipeParse(char* lineInput, node *headNode){
+
+	struct LinkedList* currNode = *headNode;
+	char* rest = lineInput;
+	char* token = strtok_r(rest, "|",&rest);
+	int i = 0;
+	while(token){
+		addNode(*headNode);
+		while(currNode->next != NULL){
+			currNode = currNode->next;
+		}
+		trimLeading(token);
+		printf("Pipe#%d: %s\n",i+1,token);
+		inputParse(token, &currNode);//inserting parsed commands into LinkedList
+		token = strtok_r(NULL,"|",&rest);
+		i++;
+
+	}
+}
+
 
 int main(int argc, char *argv[])  //first line comment//
 {
