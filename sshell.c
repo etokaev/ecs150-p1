@@ -71,29 +71,46 @@ node addNode(node head){
 }
 
 
-void inputParse(char *lineInput, node *headNode){
+void inputParse(char *lineInput, node *headNode){ // ANY NODE works
 
 
 
-	char* token = strtok(lineInput, " ");
+	char* token1 = strtok(lineInput, " ");
 	int i = 0;
-	while(token){
+	while(token1){
 		if(i > 15){
 			fprintf(stderr, "%s\n","Error: too many process arguments" );
 			isError = 1;
 			//exit(0);
 		}
 		//printf("%s\n",token);
-		(*headNode)->arrData[i] = token;
+		(*headNode)->arrData[i] = token1;
 		//printf("%s\n",(*headNode)->arrData[i]);
 		i++;
-		token = strtok(NULL," ");
+		token1 = strtok(NULL," ");
 	}
 
 	//return headNode;
 }
 
+void pipeParse(char* lineInput, node *headNode){
 
+	struct LinkedList* currNode = *headNode;
+	char* rest = lineInput;
+	char* token = strtok_r(rest, "|",&rest);
+	int i = 0;
+	while(token){
+		addNode(*headNode);
+		while(currNode->next != NULL){
+			currNode = currNode->next;
+		}
+		printf("Pipe#%d: %s\n",i+1,token);
+		inputParse(token, &currNode);//inserting parsed commands into LinkedList
+		token = strtok_r(NULL,"|",&rest);
+		i++;
+		
+	}
+}
 
 
 int display_prompt(){
@@ -275,16 +292,16 @@ int main(int argc, char *argv[])  //first line comment//
 			node headNode = createNode();
 			//addNode(headNode);
 			//headNode->next->arrData[0] = "test";
-			printf("%s\n", headNode->next->arrData[0]);
+			//printf("%s\n", headNode->next->arrData[0]);
 			display_prompt();
 			char *lineInput = get_input();
 			char fileName[512];
 			char lineInputCopy[512];
 			strcpy(lineInputCopy, lineInput);
+			pipeParse(lineInput,&headNode);
 
 			trimEndNull(lineInput);
 			strcpy(fileName, inputRedir(lineInput,"<>"));
-
 			inputParse(lineInput, &headNode);
 
 			builtinCommands(headNode);
