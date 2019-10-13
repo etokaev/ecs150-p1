@@ -73,8 +73,6 @@ node addNode(node head){
 
 void inputParse(char *lineInput, node *headNode){ // ANY NODE works
 
-
-
 	char* token1 = strtok(lineInput, " ");
 	int i = 0;
 	while(token1){
@@ -93,6 +91,27 @@ void inputParse(char *lineInput, node *headNode){ // ANY NODE works
 	//return headNode;
 }
 
+
+void append(struct LinkedList** head,char* cmd){
+
+  struct LinkedList* new_node = createNode();
+  struct LinkedList *last = *head;
+  //printf("tokens to assign to the LinkedList: %s\n",cmd);
+  inputParse(cmd,head);
+  new_node->next = NULL;
+  //printf("head->arrData[0]: %s\n", (*head)->arrData[0]);
+
+  if(*head == NULL){
+    *head = new_node;
+    return;
+  }
+  while (last->next != NULL){
+    last = last->next;
+  }
+  last->next = new_node;
+  //inputParse inside
+}
+
 void pipeParse(char* lineInput, node *headNode){
 
 	struct LinkedList* currNode = *headNode;
@@ -100,12 +119,15 @@ void pipeParse(char* lineInput, node *headNode){
 	char* token = strtok_r(rest, "|",&rest);
 	int i = 0;
 	while(token){
-		addNode(*headNode);
+		//addNode(*headNode);
 		while(currNode->next != NULL){
 			currNode = currNode->next;
 		}
 		printf("Pipe#%d: %s\n",i+1,token);
-		inputParse(token, &currNode);//inserting parsed commands into LinkedList
+    append(&currNode,token);//Assigning of lines to the LinkedList
+    // printf("headNode->arrData[0]: %s\n", (*headNode)->arrData[0]);
+    // printf("headNode->next->arrData[0]: %s\n", (*headNode)->next->arrData[0]);
+		//inputParse(token, headNode);//inserting parsed commands into LinkedList
 		token = strtok_r(NULL,"|",&rest);
 		i++;
 
@@ -298,11 +320,13 @@ int main(int argc, char *argv[])  //first line comment//
 			char fileName[512];
 			char lineInputCopy[512];
 			strcpy(lineInputCopy, lineInput);
-			//pipeParse(lineInput,&headNode);
+			pipeParse(lineInput,&headNode);
+      printf("headNode->arrData[0]: %s\n", (headNode)->arrData[0]);
+      printf("headNode->next->arrData[0]: %s\n", (headNode)->next->arrData[0]);
 
 			trimEndNull(lineInput);
 			strcpy(fileName, inputRedir(lineInput,"<>"));
-			inputParse(lineInput, &headNode);
+			//inputParse(lineInput, &headNode);
 
 			builtinCommands(headNode);
 
