@@ -132,7 +132,7 @@ int pipeParse(char* lineInput, node *headNode){
 		i++;
 
 	}
-  return i;//num of cmds
+  return i;//num of cmdsW
 }
 
 
@@ -231,16 +231,7 @@ void trimLeading(char * str)
     }
 }//FIXME https://codeforwin.org/2016/04/c-program-to-trim-leading-white-spaces-in-string.html
 
-/*
-void trimAll(char* str){
-	int index;
-	while(str[index] == ' '){
-		trimLeading(str);
-		index++;
-	}
-	trimEndNull(str);
-}//trims all the spaces in the front and the null terminator
-*/
+
 
 char* inputRedir(char* lineInput, char* delim){
 
@@ -303,6 +294,35 @@ int checkRedirSymbol(char* lineInputCopy){
 
 }
 
+void makePipe(int numCmds,node headNode){
+
+  int status;
+  int fdPrev[2];
+  int fdCurr[2];
+
+  pid_t pid;
+
+  for (int i = 0; i < numCmds; i++){
+      //FIXME for each cmds iterate through the currNode;
+        pipe(fdCurr);
+        pid = fork();
+        if(pid == 0){
+            //child
+            //check for redirect
+            close(fdCurr[0]);
+            dup2(fdCurr[1],STDOUT_FILENO);
+            close(fdCurr[1]);
+            execvp(*(headNode)->arrData,(headNode)->arrData);
+            fprintf(stderr,"Error: command not found\n");
+            exit(1);
+          }
+        else if (i == (numCmds-1)){
+            //check for redirect
+          }
+        }
+
+}
+
 int main(int argc, char *argv[])  //first line comment//
 {
 
@@ -321,10 +341,13 @@ int main(int argc, char *argv[])  //first line comment//
 			char lineInputCopy[512];
 			strcpy(lineInputCopy, lineInput);
 			numCmds = pipeParse(lineInput,&headNode);
-      printf("number of commands is %d\n", numCmds);
-      printf("headNode->arrData[0]: %s\n", (headNode)->arrData[0]);
-      printf("headNode->next->arrData[0]: %s\n", (headNode)->next->arrData[0]);
-      printf("headNode->next->next->arrData[0]: %s\n", (headNode)->next->next->arrData[0]);
+      if(numCmds > 1){
+        makePipe(numCmds,headNode);//only pipe when more than 1 cmnd or add that condition inside the makePipe
+      }
+      // printf("number of commands is %d\n", numCmds);
+      // printf("headNode->arrData[0]: %s\n", (headNode)->arrData[0]);
+      // printf("headNode->next->arrData[0]: %s\n", (headNode)->next->arrData[0]);
+      // printf("headNode->next->next->arrData[0]: %s\n", (headNode)->next->next->arrData[0]);
 			trimEndNull(lineInput);
 			strcpy(fileName, inputRedir(lineInput,"<>"));
 			//inputParse(lineInput, &headNode); //prepped a single cmd to exec prior to piping
