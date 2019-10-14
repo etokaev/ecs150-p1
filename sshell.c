@@ -19,7 +19,7 @@ int isInterrupt = 0;
 struct LinkedList{
 	char* arrData[MAX_NUM_ARGS];
 	struct LinkedList *next;
-	char filename[512];
+	//char filename[512];
 };
 
 typedef struct LinkedList *node;
@@ -299,7 +299,17 @@ int checkRedirSymbol(char* lineInputCopy){
 
 }
 
-void makePipe(int numCmds,node headNode){
+
+void execSingleCmd(char* lineInput, node headNode){
+	printf("exec single cmd\n");
+}
+
+void makePipe(int numCmds,node headNode, char* lineInput){
+
+	if(numCmds == 1){
+		execSingleCmd(lineInput, headNode);
+		return;
+	}
 
 	//int status;
 	int fdPrev[2];
@@ -377,6 +387,7 @@ void makePipe(int numCmds,node headNode){
 
 }
 
+
 int main(int argc, char *argv[])  //first line comment//
 {
 
@@ -385,8 +396,7 @@ int main(int argc, char *argv[])  //first line comment//
   int numCmds;
 
 	while(1){
-			int isError = 0;
-			int isInterrupt = 0;
+
 			node headNode = createNode();
 
 			display_prompt();
@@ -395,8 +405,10 @@ int main(int argc, char *argv[])  //first line comment//
 			char lineInputCopy[512];
 			strcpy(lineInputCopy, lineInput);
 			numCmds = pipeParse(lineInput,&headNode);
+			printf("\n\n%d\n",numCmds);
+      makePipe(numCmds,headNode,lineInput);
 
-      makePipe(numCmds,headNode);
+
       // printf("number of commands is %d\n", numCmds);
       // printf("headNode->arrData[0]: %s\n", (headNode)->arrData[0]);
       // printf("headNode->next->arrData[0]: %s\n", (headNode)->next->arrData[0]);
@@ -429,8 +441,8 @@ int main(int argc, char *argv[])  //first line comment//
 					else if(checkRedirSymbol(lineInputCopy) == 2){
 						redirSTDIN(fileName);
 					}
-
-					execvp(*(headNode)->arrData,(headNode)->arrData);
+					printf("*(headNode)->arrData: %s\n,(headNode)->arrData): %s\n",*(headNode)->arrData,(headNode)->arrData[1]);
+					//execvp(*(headNode)->arrData,(headNode)->arrData);
 					printf("\n here is the error: %d\n",(errno));
 					//execv(command[0],command);
 					perror("execvp");
