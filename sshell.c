@@ -11,6 +11,7 @@
 
 #define MAX_NUM_ARGS 16
 #define MAX_NUM_CHARS 512
+
 int isError = 0;
 int isInterrupt = 0;
 //char* checkRedir[10];
@@ -18,6 +19,7 @@ int isInterrupt = 0;
 struct LinkedList{
 	char* arrData[MAX_NUM_ARGS];
 	struct LinkedList *next;
+	char filename[512];
 };
 
 typedef struct LinkedList *node;
@@ -42,7 +44,7 @@ int arrDataSearch(node headNode, char* token){
 	int i = 0;
 	while(headNode->arrData[i] != NULL){
 		if(strcmp(headNode->arrData[i],token) == 0){
-				//found token
+				//found tokenf
 				printf("found token: %d\n",i);
 				return i;
 		}
@@ -97,6 +99,8 @@ void append(struct LinkedList** head,char* cmd){
   struct LinkedList* new_node = createNode();
   struct LinkedList *last = *head;
   //printf("tokens to assign to the LinkedList: %s\n",cmd);
+  //check for redirect and save to filename if there is redirect
+  //(strcpy(head->filename, inputRedir(lineInput,"<>");//FIXME after no redir pipe works
   inputParse(cmd,head);
   new_node->next = NULL;
   //printf("head->arrData[0]: %s\n", (*head)->arrData[0]);
@@ -123,8 +127,9 @@ int pipeParse(char* lineInput, node *headNode){
 		while(currNode->next != NULL){
 			currNode = currNode->next;
 		}
-		printf("Pipe#%d: %s\n",i+1,token);
-    append(&currNode,token);//Assigning of lines to the LinkedList
+		//printf("Pipe#%d: %s\n",i+1,token);
+
+		append(&currNode,token);//Assigning of lines to the LinkedList
     // printf("headNode->arrData[0]: %s\n", (*headNode)->arrData[0]);
     // printf("headNode->next->arrData[0]: %s\n", (*headNode)->next->arrData[0]);
 		//inputParse(token, headNode);//inserting parsed commands into LinkedList
@@ -296,30 +301,79 @@ int checkRedirSymbol(char* lineInputCopy){
 
 void makePipe(int numCmds,node headNode){
 
-  int status;
-  int fdPrev[2];
-  int fdCurr[2];
+	//int status;
+	int fdPrev[2];
+	int fdCurr[2];
+	fdPrev[0] = -1;
 
-  pid_t pid;
+	pid_t pid;
+	struct LinkedList* currNode = headNode;
+
 
   for (int i = 0; i < numCmds; i++){
-      //FIXME for each cmds iterate through the currNode;
-        pipe(fdCurr);
-        pid = fork();
-        if(pid == 0){
-            //child
-            //check for redirect
-            close(fdCurr[0]);
-            dup2(fdCurr[1],STDOUT_FILENO);
-            close(fdCurr[1]);
-            execvp(*(headNode)->arrData,(headNode)->arrData);
-            fprintf(stderr,"Error: command not found\n");
-            exit(1);
-          }
-        else if (i == (numCmds-1)){
-            //check for redirect
-          }
-        }
+
+		//FIXME for each cmds iterate through the currNode;
+    pipe(fdCurr);
+    pid = fork();
+    if(pid == 0){
+			//child
+			if(i == 0){
+				//first cmd
+				//check for redirect input
+				//redirSTDIN("file");
+				close(fdCurr[0]);
+				dup2(fdCurr[1],STDOUT_FILENO);
+				close(fdCurr[1]);
+				execvp(*(currNode)->arrData,(currNode)->arrData);
+				fprintf(stderr,"Error: command not found\n");
+				exit(1);
+			}
+			else if (i == (numCmds-1)){
+				//last cmd
+				//check for redirect output
+				//redirSTDOUT("file");
+				dup2(fdPrev[0],STDOUT_FILENO);
+				close(fdPrev[0]);
+				close(fdCurr[0]);
+				close(fdCurr[1]);
+				execvp(*(currNode)->arrData,(currNode)->arrData);
+				fprintf(stderr,"Error: command not found\n");
+				exit(1);
+			}
+			else {
+				close(fdCurr[0]);
+				dup2(fdPrev[0],STDIN_FILENO);
+				dup2(fdCurr[1],STDOUT_FILENO);
+				close(fdPrev[0]);
+				close(fdCurr[1]);
+				execvp(*(currNode)->arrData,(currNode)->arrData);
+				fprintf(stderr,"Error: command not found\n");
+				exit(1);
+			}
+		}
+
+		else if (pid < 0){
+			perror("fork");
+			exit(1);
+			//Error
+		}
+		else {
+			//Parent
+			close(fdCurr[1]);
+			//take care of PID if have time
+
+		}
+		if (currNode->next != NULL){
+			printf("node check: (%s)\n", currNode->arrData[0]);
+			currNode = currNode->next;
+		}
+		/*
+		if( i != 0){
+			for (int i = 0; i < numCmds; i++)
+		}
+		*/
+
+}
 
 }
 
@@ -341,9 +395,8 @@ int main(int argc, char *argv[])  //first line comment//
 			char lineInputCopy[512];
 			strcpy(lineInputCopy, lineInput);
 			numCmds = pipeParse(lineInput,&headNode);
-      if(numCmds > 1){
-        makePipe(numCmds,headNode);//only pipe when more than 1 cmnd or add that condition inside the makePipe
-      }
+
+      makePipe(numCmds,headNode);
       // printf("number of commands is %d\n", numCmds);
       // printf("headNode->arrData[0]: %s\n", (headNode)->arrData[0]);
       // printf("headNode->next->arrData[0]: %s\n", (headNode)->next->arrData[0]);
