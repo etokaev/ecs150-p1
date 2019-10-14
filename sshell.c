@@ -12,6 +12,9 @@
 #define MAX_NUM_ARGS 16
 #define MAX_NUM_CHARS 512
 
+
+
+
 int isError = 0;
 int isInterrupt = 0;
 //char* checkRedir[10];
@@ -31,10 +34,42 @@ node createNode(){
 	return temp;
 }
 
+void execSingleCmd(char* lineInput, node headNode);
+void trimEndNull(char* str);
+
 int cmprStr(node headNode, char *str1){
 	int result = strcmp(headNode->arrData[0],str1);
 	return result;
 }
+
+
+void trimLeading(char * str)
+{
+    int index, i;
+
+    index = 0;
+
+    /* Find last index of whitespace character */
+    while(str[index] == ' ' || str[index] == '\t' || str[index] == '\n')
+    {
+        index++;
+    }
+
+
+    if(index != 0)
+    {
+        /* Shit all trailing characters to its left */
+        i = 0;
+        while(str[i + index] != '\0')
+        {
+            str[i] = str[i + index];
+            i++;
+        }
+        str[i] = '\0'; // Make sure that string is NULL terminated
+    }
+}//FIXME https://codeforwin.org/2016/04/c-program-to-trim-leading-white-spaces-in-string.html
+
+
 
 int arrDataSearch(node headNode, char* token){
 
@@ -84,6 +119,8 @@ void inputParse(char *lineInput, node *headNode){ // ANY NODE works
 			//exit(0);
 		}
 		//printf("%s\n",token);
+		trimLeading(token1);
+		trimEndNull(token1);
 		(*headNode)->arrData[i] = token1;
 		//printf("%s\n",(*headNode)->arrData[i]);
 		i++;
@@ -116,6 +153,7 @@ void append(struct LinkedList** head,char* cmd){
   //inputParse inside
 }
 
+
 int pipeParse(char* lineInput, node *headNode){
 
 	struct LinkedList* currNode = *headNode;
@@ -128,18 +166,53 @@ int pipeParse(char* lineInput, node *headNode){
 			currNode = currNode->next;
 		}
 		//printf("Pipe#%d: %s\n",i+1,token);
+		trimLeading(token);
+		append(&currNode,token);//Assigning of lines to the LinkedList
+    // printf("headNode->arrData[0]: %s\n", (*headNode)->arrData[0]);
+    // printf("headNode->next->arrData[0]: %s\n", (*headNode)->next->arrData[0]);
+		//inputParse(token, headNode);//inserting parsed commands into LinkedList
+		printf("Pipe#%d: %s\n",i+1,token);
+		token = strtok_r(NULL,"|",&rest);
+		i++;
+
+	}
+	if(i == 1){
+		execSingleCmd(lineInput,*headNode);
+	}
+	/*
+	else{
+		makePipe();
+	}
+	*/
+  return i;//num of cmdsW
+}
+
+/*
+int pipeParse(char* lineInput, node *headNode){
+
+	struct LinkedList* currNode = *headNode;
+	char* rest = lineInput;
+	char* token = strtok(rest, "|");
+	int i = 0;
+	while(token){
+		//addNode(*headNode);
+		while(currNode->next != NULL){
+			currNode = currNode->next;
+		}
+		//printf("Pipe#%d: %s\n",i+1,token);
 
 		append(&currNode,token);//Assigning of lines to the LinkedList
     // printf("headNode->arrData[0]: %s\n", (*headNode)->arrData[0]);
     // printf("headNode->next->arrData[0]: %s\n", (*headNode)->next->arrData[0]);
 		//inputParse(token, headNode);//inserting parsed commands into LinkedList
-		token = strtok_r(NULL,"|",&rest);
+		printf("Pipe#%d: %s\n",i+1,token);
+		token = strtok(NULL,"|");
 		i++;
 
 	}
   return i;//num of cmdsW
 }
-
+*/
 
 int display_prompt(){
 
@@ -209,32 +282,6 @@ void trimEndNull(char* str){
 	str[strcspn(str,"\n")] = 0;
 } //trims null character at the end of user input
 
-
-void trimLeading(char * str)
-{
-    int index, i;
-
-    index = 0;
-
-    /* Find last index of whitespace character */
-    while(str[index] == ' ' || str[index] == '\t' || str[index] == '\n')
-    {
-        index++;
-    }
-
-
-    if(index != 0)
-    {
-        /* Shit all trailing characters to its left */
-        i = 0;
-        while(str[i + index] != '\0')
-        {
-            str[i] = str[i + index];
-            i++;
-        }
-        str[i] = '\0'; // Make sure that string is NULL terminated
-    }
-}//FIXME https://codeforwin.org/2016/04/c-program-to-trim-leading-white-spaces-in-string.html
 
 
 
@@ -320,7 +367,7 @@ void execSingleCmd(char* lineInput, node headNode){
 
 
 		fprintf(stderr, "+ completed '%s' [%d]\n", lineInput, status);
-		//exit(0);
+
 	} else { //FIND OUT why not printing inside child
 			/*if(isError == 1 || isInterrupt == 1){
 				exit(0);
@@ -344,12 +391,7 @@ void execSingleCmd(char* lineInput, node headNode){
 
 }
 
-void makePipe(int numCmds,node headNode, char* lineInput){
-
-	if(numCmds == 1){
-		execSingleCmd(lineInput, headNode);
-		return;
-	}
+void makePipe(int numCmds,node headNode){
 
 	//int status;
 	int fdPrev[2];
@@ -427,13 +469,26 @@ void makePipe(int numCmds,node headNode, char* lineInput){
 
 }
 
+int countPipes(char* lineInput){
+
+
+	char* token1 = strtok(lineInput, "|");
+	int i = 0;
+	while(token1){
+
+		//printf("%s\n",token);
+		i++;
+		token1 = strtok(NULL,"|");
+	}
+
+	return i;
+}
 
 int main(int argc, char *argv[])  //first line comment//
 {
 
-	//int status = 0;
-	//pid_t pid;
-  //int numCmds;
+
+  //int numCmds = 0;
 
 	while(1){
 
@@ -441,13 +496,29 @@ int main(int argc, char *argv[])  //first line comment//
 
 			display_prompt();
 			char *lineInput = get_input();
+			//numCmds = countPipes(lineInput);
+			//printf("numCmds: %d\n",numCmds);
+			//numCmds = countPipes(lineInput);
+
+			pipeParse(lineInput,&headNode);
+
 			//char fileName[512];
 			// char lineInputCopy[512];
 			// strcpy(lineInputCopy, lineInput);
 			//numCmds = pipeParse(lineInput,&headNode);
- 			//pipeParse(lineInput,&headNode);
 
-			execSingleCmd(lineInput, headNode);
+			/*
+			if( numCmds == 1){
+				execSingleCmd(lineInput, headNode);
+			}
+			else if (numCmds > 1){
+				pipeParse(lineInput,&headNode);
+			}
+			else{
+
+			}
+			*/
+
       //makePipe(numCmds,headNode,lineInput);//FIXME switch back on
 
 			/*
