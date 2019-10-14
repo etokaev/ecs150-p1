@@ -112,7 +112,7 @@ void append(struct LinkedList** head,char* cmd){
   //inputParse inside
 }
 
-void pipeParse(char* lineInput, node *headNode){
+int pipeParse(char* lineInput, node *headNode){
 
 	struct LinkedList* currNode = *headNode;
 	char* rest = lineInput;
@@ -132,6 +132,7 @@ void pipeParse(char* lineInput, node *headNode){
 		i++;
 
 	}
+  return i;//num of cmds
 }
 
 
@@ -307,26 +308,26 @@ int main(int argc, char *argv[])  //first line comment//
 
 	int status = 0;
 	pid_t pid;
+  int numCmds;
 
 	while(1){
 			int isError = 0;
 			int isInterrupt = 0;
 			node headNode = createNode();
-			//addNode(headNode);
-			//headNode->next->arrData[0] = "test";
-			//printf("%s\n", headNode->next->arrData[0]);
+
 			display_prompt();
 			char *lineInput = get_input();
 			char fileName[512];
 			char lineInputCopy[512];
 			strcpy(lineInputCopy, lineInput);
-			pipeParse(lineInput,&headNode);
+			numCmds = pipeParse(lineInput,&headNode);
+      printf("number of commands is %d\n", numCmds);
       printf("headNode->arrData[0]: %s\n", (headNode)->arrData[0]);
       printf("headNode->next->arrData[0]: %s\n", (headNode)->next->arrData[0]);
-
+      printf("headNode->next->next->arrData[0]: %s\n", (headNode)->next->next->arrData[0]);
 			trimEndNull(lineInput);
 			strcpy(fileName, inputRedir(lineInput,"<>"));
-			//inputParse(lineInput, &headNode);
+			//inputParse(lineInput, &headNode); //prepped a single cmd to exec prior to piping
 
 			builtinCommands(headNode);
 
