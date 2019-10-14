@@ -301,7 +301,47 @@ int checkRedirSymbol(char* lineInputCopy){
 
 
 void execSingleCmd(char* lineInput, node headNode){
-	printf("exec single cmd\n");
+
+	int status = 0;
+	pid_t pid;
+	// //char fileName[512];
+	// char lineInputCopy[512];
+	// strcpy(lineInputCopy, lineInput);
+	//printf("exec single cmd\n");
+	trimEndNull(lineInput);
+	inputParse(lineInput, &headNode);
+	// strcpy(fileName, inputRedir(lineInput,"<>"));
+	builtinCommands(headNode);
+
+	pid = fork();
+	if (pid != 0){
+		//Parent
+		waitpid(-1, &status, 0);
+
+
+		fprintf(stderr, "+ completed '%s' [%d]\n", lineInput, status);
+		//exit(0);
+	} else { //FIND OUT why not printing inside child
+			/*if(isError == 1 || isInterrupt == 1){
+				exit(0);
+			}
+
+			//checks for input redirection
+			if(checkRedirSymbol(lineInputCopy) == 1){
+				redirSTDOUT(fileName);
+			}
+			else if(checkRedirSymbol(lineInputCopy) == 2){
+				redirSTDIN(fileName);
+			}
+			*/
+			printf("*(headNode)->arrData: %s\n,(headNode)->arrData): %s\n",*(headNode)->arrData,(headNode)->arrData[1]);
+			execvp(*(headNode)->arrData,(headNode)->arrData);
+			printf("\nhere is the error: %d\n",(errno));
+			perror("execvp");
+			exit(1);
+			//fprintf(stderr, "+ completed '%s' [%d]\n", "ls", status);
+	}
+
 }
 
 void makePipe(int numCmds,node headNode, char* lineInput){
@@ -391,9 +431,9 @@ void makePipe(int numCmds,node headNode, char* lineInput){
 int main(int argc, char *argv[])  //first line comment//
 {
 
-	int status = 0;
-	pid_t pid;
-  int numCmds;
+	//int status = 0;
+	//pid_t pid;
+  //int numCmds;
 
 	while(1){
 
@@ -401,29 +441,31 @@ int main(int argc, char *argv[])  //first line comment//
 
 			display_prompt();
 			char *lineInput = get_input();
-			char fileName[512];
-			char lineInputCopy[512];
-			strcpy(lineInputCopy, lineInput);
-			numCmds = pipeParse(lineInput,&headNode);
-			printf("\n\n%d\n",numCmds);
-      makePipe(numCmds,headNode,lineInput);
+			//char fileName[512];
+			// char lineInputCopy[512];
+			// strcpy(lineInputCopy, lineInput);
+			//numCmds = pipeParse(lineInput,&headNode);
+ 			//pipeParse(lineInput,&headNode);
 
+			execSingleCmd(lineInput, headNode);
+      //makePipe(numCmds,headNode,lineInput);//FIXME switch back on
 
+			/*
       // printf("number of commands is %d\n", numCmds);
       // printf("headNode->arrData[0]: %s\n", (headNode)->arrData[0]);
       // printf("headNode->next->arrData[0]: %s\n", (headNode)->next->arrData[0]);
       // printf("headNode->next->next->arrData[0]: %s\n", (headNode)->next->next->arrData[0]);
 			trimEndNull(lineInput);
 			strcpy(fileName, inputRedir(lineInput,"<>"));
+
 			//inputParse(lineInput, &headNode); //prepped a single cmd to exec prior to piping
 
 			builtinCommands(headNode);
 
 
-			//read_command(command);
 			pid = fork();
 			if (pid != 0){
-				/*Parent*/
+				//Parent
 				waitpid(-1, &status, 0);
 
 
@@ -442,13 +484,12 @@ int main(int argc, char *argv[])  //first line comment//
 						redirSTDIN(fileName);
 					}
 					printf("*(headNode)->arrData: %s\n,(headNode)->arrData): %s\n",*(headNode)->arrData,(headNode)->arrData[1]);
-					//execvp(*(headNode)->arrData,(headNode)->arrData);
+					execvp(*(headNode)->arrData,(headNode)->arrData);
 					printf("\n here is the error: %d\n",(errno));
-					//execv(command[0],command);
 					perror("execvp");
 					exit(1);
 				  //fprintf(stderr, "+ completed '%s' [%d]\n", "ls", status);
-			}
+			}*/
 	}
 
   	return EXIT_SUCCESS;
