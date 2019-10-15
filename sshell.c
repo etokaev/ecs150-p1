@@ -113,7 +113,7 @@ void inputParse(char *lineInput, node *headNode){ // ANY NODE works
 	char* token1 = strtok(lineInput, " ");
 	int i = 0;
 	while(token1){
-		if(i > 15){
+		if(i >= 16){
 			fprintf(stderr, "%s\n","Error: too many process arguments" );
 			isError = 1;
 			//exit(0);
@@ -165,25 +165,20 @@ int pipeParse(char* lineInput, node *headNode){
 		while(currNode->next != NULL){
 			currNode = currNode->next;
 		}
-		//printf("Pipe#%d: %s\n",i+1,token);
+		printf("Pipe#%d: %s\n",i+1,token);
 		trimLeading(token);
 		append(&currNode,token);//Assigning of lines to the LinkedList
     // printf("headNode->arrData[0]: %s\n", (*headNode)->arrData[0]);
     // printf("headNode->next->arrData[0]: %s\n", (*headNode)->next->arrData[0]);
 		//inputParse(token, headNode);//inserting parsed commands into LinkedList
-		printf("Pipe#%d: %s\n",i+1,token);
+		//printf("Pipe#%d: %s\n",i+1,token);
 		token = strtok_r(NULL,"|",&rest);
 		i++;
 
 	}
-	if(i == 1){
-		execSingleCmd(lineInput,*headNode);
-	}
-	/*
-	else{
-		makePipe();
-	}
-	*/
+
+	//makePipe();
+
   return i;//num of cmdsW
 }
 
@@ -285,27 +280,53 @@ void trimEndNull(char* str){
 
 
 
-char* inputRedir(char* lineInput, char* delim){
+char* inputRedir(char* lineInput, char* delim,node* headNode){
 
-		char* tokenRedir = strtok(lineInput, delim);
-		int j = 0;
-		//char *cmdStr;
+	//char* tokenRedir = strtok(lineInput, "<");
 		char *fileName;
+		char* rest = lineInput;
+		strcpy(rest, lineInput);
+		char* tokenRedir = strtok_r(rest, delim,&rest);
+		//tokenRedir = strtok(NULL,"?");
+		int j = 0;
+		//char cmdStr[513];
+		//char *fileName;
 		while(tokenRedir){
-
+			//printf("tokens: %s\n",tokenRedir);
 			if(j == 0){
-				//cmdStr = tokenRedir;
-				tokenRedir = strtok(NULL,delim);
+
+				//strcpy(cmdStr,tokenRedir);
+				//printf("cmdStr:%s\n", cmdStr);
+				//inputParse(cmdStr, headNode);
+				tokenRedir = strtok_r(NULL,delim,&rest);
 			}else if(j == 1){
 				fileName = tokenRedir;
 			}else{
 				break;
 			}
+
 			j++;
-			//printf("FileName is %s\n", fileName);
+			//printf("FileName is:%s\n", fileName);
 
 		}//extracts filename from lineInput
 		trimLeading(fileName);
+		//strcpy(lineInput, cmdStr);
+
+		/*
+
+		for (int x = 0; x <= MAX_NUM_ARGS; x++){
+
+			//int result = strcmp((*headNode)->arrData[x],"<");
+
+			if((*headNode)->arrData[x]){
+				for (int i = x; i <= MAX_NUM_ARGS; i++){
+					(*headNode)->arrData[i] = NULL;
+				}
+			}
+		}
+		printArrData(*headNode);
+
+		*/
 		return fileName;
 }
 void redirSTDIN(char* fileName){
@@ -351,13 +372,16 @@ void execSingleCmd(char* lineInput, node headNode){
 
 	int status = 0;
 	pid_t pid;
-	// //char fileName[512];
-	// char lineInputCopy[512];
-	// strcpy(lineInputCopy, lineInput);
+	char fileName[512];
+	char lineInputCopy[512];
+	strcpy(lineInputCopy, lineInput);
 	//printf("exec single cmd\n");
 	trimEndNull(lineInput);
+	strcpy(fileName, inputRedir(lineInput,"<>",&headNode));//if placed after input parse - segfault
+	//printf("filename in execSingleCmd: %s\n",fileName);
 	inputParse(lineInput, &headNode);
 	// strcpy(fileName, inputRedir(lineInput,"<>"));
+
 	builtinCommands(headNode);
 
 	pid = fork();
@@ -369,9 +393,10 @@ void execSingleCmd(char* lineInput, node headNode){
 		fprintf(stderr, "+ completed '%s' [%d]\n", lineInput, status);
 
 	} else { //FIND OUT why not printing inside child
-			/*if(isError == 1 || isInterrupt == 1){
+			if(isError == 1 || isInterrupt == 1){
 				exit(0);
 			}
+			//redirSTDIN(fileName);
 
 			//checks for input redirection
 			if(checkRedirSymbol(lineInputCopy) == 1){
@@ -380,8 +405,11 @@ void execSingleCmd(char* lineInput, node headNode){
 			else if(checkRedirSymbol(lineInputCopy) == 2){
 				redirSTDIN(fileName);
 			}
-			*/
-			printf("*(headNode)->arrData: %s\n,(headNode)->arrData): %s\n",*(headNode)->arrData,(headNode)->arrData[1]);
+
+
+			//printf("*(headNode)->arrData: %s\n,(headNode)->arrData): %s\n",*(headNode)->arrData,(headNode)->arrData[1]);
+
+			//printArrData(headNode);
 			execvp(*(headNode)->arrData,(headNode)->arrData);
 			printf("\nhere is the error: %d\n",(errno));
 			perror("execvp");
@@ -465,46 +493,60 @@ void makePipe(int numCmds,node headNode){
 		}
 		*/
 
-}
-
-}
-
-int countPipes(char* lineInput){
-
-
-	char* token1 = strtok(lineInput, "|");
-	int i = 0;
-	while(token1){
-
-		//printf("%s\n",token);
-		i++;
-		token1 = strtok(NULL,"|");
 	}
 
-	return i;
+}
+
+
+int countPipes(char* lineInput){
+	int counter = 1;
+	size_t i = 0;
+	char lineInputCopy[MAX_NUM_CHARS+1];
+	strcpy(lineInputCopy,lineInput);
+
+	for (;lineInputCopy[i];i++){
+		//printf("%c\n",lineInputCopy[i]);
+		if(lineInputCopy[i] == '|'){
+			counter++;
+		}
+	}
+
+	return counter;
+}
+
+void resetGlobalVars(){
+	isError = 0;
+	isInterrupt = 0;
 }
 
 int main(int argc, char *argv[])  //first line comment//
 {
 
 
-  //int numCmds = 0;
+  int numCmds = 0;
 
 	while(1){
-
+			resetGlobalVars();//resets isError and isInterrupt
 			node headNode = createNode();
 
 			display_prompt();
 			char *lineInput = get_input();
 			//numCmds = countPipes(lineInput);
+
+			numCmds = countPipes(lineInput);
 			//printf("numCmds: %d\n",numCmds);
-			//numCmds = countPipes(lineInput);
-
-			pipeParse(lineInput,&headNode);
-
+			//printf("%d\n",numCmds);
+			if(numCmds == 1){
+				execSingleCmd(lineInput,headNode);
+			}
+			else{
+				pipeParse(lineInput,&headNode);
+				}
+			//execSingleCmd(lineInput,headNode);
+			//inputParse(lineInput,&headNode);
 			//char fileName[512];
-			// char lineInputCopy[512];
-			// strcpy(lineInputCopy, lineInput);
+			//char lineInputCopy[512];
+			//strcpy(lineInputCopy, lineInput);
 			//numCmds = pipeParse(lineInput,&headNode);
 
 			/*
