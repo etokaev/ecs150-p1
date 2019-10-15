@@ -36,6 +36,10 @@ node createNode(){
 
 void execSingleCmd(char* lineInput, node headNode);
 void trimEndNull(char* str);
+void pipeParse(char* lineInput, node *headNode);
+void makePipe(int numCmds,node headNode);
+
+
 
 int cmprStr(node headNode, char *str1){
 	int result = strcmp(headNode->arrData[0],str1);
@@ -154,60 +158,7 @@ void append(struct LinkedList** head,char* cmd){
 }
 
 
-int pipeParse(char* lineInput, node *headNode){
 
-	struct LinkedList* currNode = *headNode;
-	char* rest = lineInput;
-	char* token = strtok_r(rest, "|",&rest);
-	int i = 0;
-	while(token){
-		//addNode(*headNode);
-		while(currNode->next != NULL){
-			currNode = currNode->next;
-		}
-		printf("Pipe#%d: %s\n",i+1,token);
-		trimLeading(token);
-		append(&currNode,token);//Assigning of lines to the LinkedList
-    // printf("headNode->arrData[0]: %s\n", (*headNode)->arrData[0]);
-    // printf("headNode->next->arrData[0]: %s\n", (*headNode)->next->arrData[0]);
-		//inputParse(token, headNode);//inserting parsed commands into LinkedList
-		//printf("Pipe#%d: %s\n",i+1,token);
-		token = strtok_r(NULL,"|",&rest);
-		i++;
-
-	}
-
-	//makePipe();
-
-  return i;//num of cmdsW
-}
-
-/*
-int pipeParse(char* lineInput, node *headNode){
-
-	struct LinkedList* currNode = *headNode;
-	char* rest = lineInput;
-	char* token = strtok(rest, "|");
-	int i = 0;
-	while(token){
-		//addNode(*headNode);
-		while(currNode->next != NULL){
-			currNode = currNode->next;
-		}
-		//printf("Pipe#%d: %s\n",i+1,token);
-
-		append(&currNode,token);//Assigning of lines to the LinkedList
-    // printf("headNode->arrData[0]: %s\n", (*headNode)->arrData[0]);
-    // printf("headNode->next->arrData[0]: %s\n", (*headNode)->next->arrData[0]);
-		//inputParse(token, headNode);//inserting parsed commands into LinkedList
-		printf("Pipe#%d: %s\n",i+1,token);
-		token = strtok(NULL,"|");
-		i++;
-
-	}
-  return i;//num of cmdsW
-}
-*/
 
 int display_prompt(){
 
@@ -249,7 +200,7 @@ void isPwd(node headNode){
 
 void printArrData(node headNode){
 
-	printf("inside printArrData, length: %ld\n",strlen(*(headNode)->arrData));
+	//printf("inside printArrData, length: %ld\n",strlen(*(headNode)->arrData));
 	for (int i = 0; i < MAX_NUM_ARGS; i++){
 		printf("element number %d: %s\n",i,headNode->arrData[i]);
 	}
@@ -419,12 +370,41 @@ void execSingleCmd(char* lineInput, node headNode){
 
 }
 
+
+void pipeParse(char* lineInput, node *headNode){
+
+	struct LinkedList* currNode = *headNode;
+	char* rest = lineInput;
+	char* token = strtok_r(rest, "|",&rest);
+	int i = 0;
+	while(token){
+		//addNode(*headNode);
+		while(currNode->next != NULL){
+			currNode = currNode->next;
+		}
+
+		trimLeading(token);
+		printf("Pipe#%d: %s\n",i+1,token);
+		append(&currNode,token);//Assigning of lines to the LinkedList
+    // printf("headNode->arrData[0]: %s\n", (*headNode)->arrData[0]);
+    // printf("headNode->next->arrData[0]: %s\n", (*headNode)->next->arrData[0]);
+		//inputParse(token, headNode);//inserting parsed commands into LinkedList
+		//printf("Pipe#%d: %s\n",i+1,token);
+		token = strtok_r(NULL,"|",&rest);
+		i++;
+
+	}
+
+	makePipe(i,*headNode);
+
+}
+
 void makePipe(int numCmds,node headNode){
 
 	//int status;
-	int fdPrev[2];
-	int fdCurr[2];
-	fdPrev[0] = -1;
+	int fdPrev[2];//pipe1
+	int fdCurr[2];//pipe2
+	fdPrev[1] = -1;
 
 	pid_t pid;
 	struct LinkedList* currNode = headNode;
@@ -438,34 +418,45 @@ void makePipe(int numCmds,node headNode){
     if(pid == 0){
 			//child
 			if(i == 0){
+
 				//first cmd
 				//check for redirect input
 				//redirSTDIN("file");
 				close(fdCurr[0]);
-				dup2(fdCurr[1],STDOUT_FILENO);
+				dup2(fdCurr[1],1);
+				//output to pipe
 				close(fdCurr[1]);
+				//dup2(fdCurr[1],STDOUT_FILENO);
+				//close(fdCurr[1]);
+				printArrData(currNode);
 				execvp(*(currNode)->arrData,(currNode)->arrData);
 				fprintf(stderr,"Error: command not found\n");
 				exit(1);
 			}
 			else if (i == (numCmds-1)){
+
 				//last cmd
 				//check for redirect output
 				//redirSTDOUT("file");
-				dup2(fdPrev[0],STDOUT_FILENO);
+				dup2(fdPrev[0],0);
 				close(fdPrev[0]);
 				close(fdCurr[0]);
 				close(fdCurr[1]);
+				printArrData(currNode);
 				execvp(*(currNode)->arrData,(currNode)->arrData);
 				fprintf(stderr,"Error: command not found\n");
 				exit(1);
 			}
 			else {
+				//printf("inside middle cmd\n");
 				close(fdCurr[0]);
-				dup2(fdPrev[0],STDIN_FILENO);
-				dup2(fdCurr[1],STDOUT_FILENO);
+				dup2(fdPrev[0],0);
+				dup2(fdCurr[1],1);
 				close(fdPrev[0]);
+				//close(fdPrev[1]);
+				//close(fdCurr[0]);
 				close(fdCurr[1]);
+				printArrData(currNode);
 				execvp(*(currNode)->arrData,(currNode)->arrData);
 				fprintf(stderr,"Error: command not found\n");
 				exit(1);
@@ -484,7 +475,8 @@ void makePipe(int numCmds,node headNode){
 
 		}
 		if (currNode->next != NULL){
-			printf("node check: (%s)\n", currNode->arrData[0]);
+			//printf("node check: (%s)\n", currNode->arrData[0]);
+			//printArrData(currNode);
 			currNode = currNode->next;
 		}
 		/*
@@ -492,10 +484,103 @@ void makePipe(int numCmds,node headNode){
 			for (int i = 0; i < numCmds; i++)
 		}
 		*/
-
+		if(i != 0){
+			close(fdPrev[0]);
+		}
+		fdPrev[0] = fdCurr[0];
 	}
+	close(fdCurr[0]);
 
 }
+
+// void makePipe(int numCmds,node headNode){
+//
+// 	//int status;
+// 	int fdPrev[2];//pipe1
+// 	int fdCurr[2];//pipe2
+// 	//fdPrev[0] = -1;
+//
+// 	pid_t pid;
+// 	struct LinkedList* currNode = headNode;
+//
+//
+//   for (int i = 0; i < numCmds; i++){
+//
+// 		//FIXME for each cmds iterate through the currNode;
+//     pipe(fdCurr);
+//     pid = fork();
+//     if(pid == 0){
+// 			//child
+// 			if(i == 0){
+// 				//printf("inside first cmd\n");
+// 				//first cmd
+// 				//check for redirect input
+// 				//redirSTDIN("file");
+// 				close(fdCurr[0]);
+// 				dup2(fdCurr[1],STDOUT_FILENO);
+// 				close(fdCurr[1]);
+// 				printArrData(currNode);
+// 				execvp(*(currNode)->arrData,(currNode)->arrData);
+// 				fprintf(stderr,"Error: command not found\n");
+// 				exit(1);
+// 			}
+// 			else if (i == (numCmds-1)){
+// 				//printf("inside last command\n");
+// 				//last cmd
+// 				//check for redirect output
+// 				//redirSTDOUT("file");
+// 				dup2(fdPrev[0],STDOUT_FILENO);
+// 				close(fdPrev[0]);
+// 				close(fdCurr[0]);
+// 				close(fdCurr[1]);
+// 				printArrData(currNode);
+// 				execvp(*(currNode)->arrData,(currNode)->arrData);
+// 				fprintf(stderr,"Error: command not found\n");
+// 				exit(1);
+// 			}
+// 			else {
+// 				//printf("inside middle cmd\n");
+// 				close(fdCurr[0]);
+// 				dup2(fdPrev[0],STDIN_FILENO);
+// 				dup2(fdCurr[1],STDOUT_FILENO);
+// 				close(fdPrev[0]);
+// 				close(fdCurr[1]);
+// 				printArrData(currNode);
+// 				execvp(*(currNode)->arrData,(currNode)->arrData);
+// 				fprintf(stderr,"Error: command not found\n");
+// 				exit(1);
+// 			}
+// 		}
+//
+// 		else if (pid < 0){
+// 			perror("fork");
+// 			exit(1);
+// 			//Error
+// 		}
+// 		else {
+// 			//Parent
+// 			close(fdCurr[1]);
+// 			//take care of PID if have time
+//
+// 		}
+// 		if (currNode->next != NULL){
+// 			//printf("node check: (%s)\n", currNode->arrData[0]);
+// 			//printArrData(currNode);
+// 			currNode = currNode->next;
+// 		}
+// 		/*
+// 		if( i != 0){
+// 			for (int i = 0; i < numCmds; i++)
+// 		}
+// 		*/
+// 		if(i != 0){
+// 			close(fdPrev[0]);
+// 		}
+// 		fdPrev[0] = fdCurr[0];
+// 	}
+// 	close(fdCurr[0]);
+//
+// }
 
 
 int countPipes(char* lineInput){
