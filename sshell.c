@@ -117,7 +117,7 @@ node addNode(node head){
 
 void inputParse(char *lineInput, node *headNode){ // ANY NODE works
 
-	char* token1 = strtok(lineInput, " ");
+	char* token1 = strtok(lineInput, " \n");
 	int i = 0;
 	while(token1){
 		if(i >= 16){
@@ -131,7 +131,7 @@ void inputParse(char *lineInput, node *headNode){ // ANY NODE works
 		(*headNode)->arrData[i] = token1;
 		//printf("%s\n",(*headNode)->arrData[i]);
 		i++;
-		token1 = strtok(NULL," ");
+		token1 = strtok(NULL," \n");
 	}
 
 	//return headNode;
@@ -292,7 +292,7 @@ void redirSTDIN(char* fileName){
 
 void redirSTDOUT(char* fileName){
 
-	int fd = open(fileName, O_RDWR);
+	int fd = open(fileName, O_CREAT| O_TRUNC | O_RDWR, 0644);
 	dup2(fd, STDOUT_FILENO);
 	close(fd);
 }
