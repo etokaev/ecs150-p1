@@ -22,6 +22,8 @@ int isInterrupt = 0;
 struct LinkedList{
 	char* arrData[MAX_NUM_ARGS];
 	struct LinkedList *next;
+	int pid;
+	int status;
 	//char filename[512];
 };
 
@@ -401,7 +403,7 @@ void pipeParse(char* lineInput, node *headNode){
 
 void makePipe(int numCmds,node headNode){
 
-	//int status;
+	int status;
 	int fdPrev[2];//pipe1
 	int fdCurr[2];//pipe2
 	fdPrev[1] = -1;
@@ -471,6 +473,7 @@ void makePipe(int numCmds,node headNode){
 		else {
 			//Parent
 			close(fdCurr[1]);
+			currNode->pid = pid;
 			//take care of PID if have time
 
 		}
@@ -490,6 +493,15 @@ void makePipe(int numCmds,node headNode){
 		fdPrev[0] = fdCurr[0];
 	}
 	close(fdCurr[0]);
+
+	for (int j = 0; j < numCmds; j++){
+		pid_t gotPid = waitpid(-1, &status, 0);
+		for (int x = 0; x < numCmds; x++){
+			if(gotPid == (currNode->pid)){
+				currNode->status = WEXITSTATUS(status);
+			}
+		}
+	}
 
 }
 
