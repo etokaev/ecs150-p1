@@ -8,29 +8,24 @@
 #include<sys/stat.h>
 #include <fcntl.h>
 
-//#include <linked.h>
-
 #define MAX_NUM_ARGS 16
 #define MAX_NUM_CHARS 512
 
-
-
-
 int isError = 0;
 int isInterrupt = 0;
-//char* checkRedir[10];
 
-struct LinkedList{
+struct LinkedList
+{
 	char* arrData[MAX_NUM_ARGS];
 	struct LinkedList *next;
 	int pid;
 	int status;
-	//char filename[512];
 };
 
 typedef struct LinkedList *node;
 
-node createNode(){
+node createNode()
+{
 	node temp;
 	temp = (node)malloc(sizeof(struct LinkedList)*MAX_NUM_ARGS);
 	temp->next = NULL;
@@ -40,11 +35,12 @@ node createNode(){
 void execSingleCmd(char* lineInput, node headNode);
 void trimEndNull(char* str);
 void pipeParse(char* lineInput, node *headNode);
-void makePipe(int numCmds,node headNode);
+void makePipe(int numCmds,node headNode,char* lineInput);
 
 
 
-int cmprStr(node headNode, char *str1){
+int cmprStr(node headNode, char *str1)
+{
 	int result = strcmp(headNode->arrData[0],str1);
 	return result;
 }
@@ -53,19 +49,15 @@ int cmprStr(node headNode, char *str1){
 void trimLeading(char * str)
 {
     int index, i;
-
     index = 0;
-
     /* Find last index of whitespace character */
     while(str[index] == ' ' || str[index] == '\t' || str[index] == '\n')
     {
         index++;
     }
-
-
     if(index != 0)
     {
-        /* Shit all trailing characters to its left */
+        /* Shift all trailing characters to its left */
         i = 0;
         while(str[i + index] != '\0')
         {
@@ -76,13 +68,8 @@ void trimLeading(char * str)
     }
 }//FIXME https://codeforwin.org/2016/04/c-program-to-trim-leading-white-spaces-in-string.html
 
-
-
-int arrDataSearch(node headNode, char* token){
-
-	//int sizeArrData = sizeof(headNode->arrData);
-	//int size = sizeArrData/sizeof(headNode->arrData[0]);
-	//printf("%d\n",size);
+int arrDataSearch(node headNode, char* token)
+{
 	int i = 0;
 	while(headNode->arrData[i] != NULL){
 		if(strcmp(headNode->arrData[i],token) == 0){
@@ -96,11 +83,10 @@ int arrDataSearch(node headNode, char* token){
 	return -1;
 }
 
-
 node addNode(node head){
 	node temp1, temp2;
 	temp1 = createNode();
-	//temp1->arrData[0] = val; //FIXME WHEN GET TO PIPE
+
 	if(head == NULL){
 		head = temp1;
 	}//when empty list
@@ -114,8 +100,9 @@ node addNode(node head){
 	return head;
 }
 
-
-void inputParse(char *lineInput, node *headNode){ // ANY NODE works
+void inputParse(char *lineInput, node *headNode)
+{ 
+	// for any NODE works
 
 	char* token1 = strtok(lineInput, " \n");
 	int i = 0;
@@ -123,31 +110,28 @@ void inputParse(char *lineInput, node *headNode){ // ANY NODE works
 		if(i >= 16){
 			fprintf(stderr, "%s\n","Error: too many process arguments" );
 			isError = 1;
-			//exit(0);
+			
 		}
-		//printf("%s\n",token);
+
 		trimLeading(token1);
 		trimEndNull(token1);
 		(*headNode)->arrData[i] = token1;
-		//printf("%s\n",(*headNode)->arrData[i]);
+
 		i++;
 		token1 = strtok(NULL," \n");
 	}
 
-	//return headNode;
 }
 
-
-void append(struct LinkedList** head,char* cmd){
-
+void append(struct LinkedList** head,char* cmd)
+{
   struct LinkedList* new_node = createNode();
   struct LinkedList *last = *head;
-  //printf("tokens to assign to the LinkedList: %s\n",cmd);
+
   //check for redirect and save to filename if there is redirect
-  //(strcpy(head->filename, inputRedir(lineInput,"<>");//FIXME after no redir pipe works
   inputParse(cmd,head);
   new_node->next = NULL;
-  //printf("head->arrData[0]: %s\n", (*head)->arrData[0]);
+
 
   if(*head == NULL){
     *head = new_node;
@@ -157,21 +141,17 @@ void append(struct LinkedList** head,char* cmd){
     last = last->next;
   }
   last->next = new_node;
-  //inputParse inside
 }
 
 
-
-
-int display_prompt(){
-
+int display_prompt()
+{
 	printf("sshell$ ");
 	return 0;
 }
 
-
-char* get_input(){
-
+char* get_input()
+{
   char* input;
 	input = (char*)malloc(MAX_NUM_CHARS + 1);
 	fgets(input,MAX_NUM_CHARS + 1,stdin);
@@ -179,19 +159,17 @@ char* get_input(){
 }
 
 
-
-
-void isExit(node headNode){
-
+void isExit(node headNode)
+{
 	if(cmprStr(headNode,"exit") == 0){
 		fprintf(stderr, "%s\n","Bye..." );
 		exit(0);
 	}
 }
 
-void isPwd(node headNode){
+void isPwd(node headNode)
+{
 	char cwd[MAX_NUM_CHARS];
-
 	if(cmprStr(headNode,"pwd") == 0){
 		getcwd(cwd,sizeof(cwd));
 		printf("%s",cwd);
@@ -201,17 +179,15 @@ void isPwd(node headNode){
 
 }
 
-void printArrData(node headNode){
-
+void printArrData(node headNode)
+{
 	//printf("inside printArrData, length: %ld\n",strlen(*(headNode)->arrData));
 	for (int i = 0; i < MAX_NUM_ARGS; i++){
 		printf("element number %d: %s\n",i,headNode->arrData[i]);
 	}
 }
-
-
-void isCD(node headNode){
-
+void isCD(node headNode)
+{
 	if(cmprStr(headNode,"cd") == 0){
 		isInterrupt = 1;
 		if(chdir(headNode->arrData[1]) == 0){
@@ -221,37 +197,32 @@ void isCD(node headNode){
 	}
 }
 
-void builtinCommands(node headNode){
+void builtinCommands(node headNode)
+{
 	isExit(headNode);
 	isPwd(headNode);
 	isCD(headNode);
 }
 
-void trimEndNull(char* str){
+void trimEndNull(char* str)
+{
 	str[strcspn(str,"\n")] = 0;
 } //trims null character at the end of user input
 
-
-
-
-char* inputRedir(char* lineInput, char* delim,node* headNode){
-
-	//char* tokenRedir = strtok(lineInput, "<");
+char* inputRedir(char* lineInput, char* delim,node* headNode)
+{
 		char *fileName;
 		char* rest = lineInput;
 		strcpy(rest, lineInput);
 		char* tokenRedir = strtok_r(rest, delim,&rest);
-		//tokenRedir = strtok(NULL,"?");
+
 		int j = 0;
-		//char cmdStr[513];
-		//char *fileName;
+
 		while(tokenRedir){
-			//printf("tokens: %s\n",tokenRedir);
+
 			if(j == 0){
 
-				//strcpy(cmdStr,tokenRedir);
-				//printf("cmdStr:%s\n", cmdStr);
-				//inputParse(cmdStr, headNode);
+
 				tokenRedir = strtok_r(NULL,delim,&rest);
 			}else if(j == 1){
 				fileName = tokenRedir;
@@ -260,44 +231,28 @@ char* inputRedir(char* lineInput, char* delim,node* headNode){
 			}
 
 			j++;
-			//printf("FileName is:%s\n", fileName);
 
 		}//extracts filename from lineInput
 		trimLeading(fileName);
-		//strcpy(lineInput, cmdStr);
 
-		/*
-
-		for (int x = 0; x <= MAX_NUM_ARGS; x++){
-
-			//int result = strcmp((*headNode)->arrData[x],"<");
-
-			if((*headNode)->arrData[x]){
-				for (int i = x; i <= MAX_NUM_ARGS; i++){
-					(*headNode)->arrData[i] = NULL;
-				}
-			}
-		}
-		printArrData(*headNode);
-
-		*/
 		return fileName;
 }
-void redirSTDIN(char* fileName){
-
+void redirSTDIN(char* fileName)
+{
 	int fd = open(fileName, 0);
 	dup2(fd, 0);
 	close(fd);
 }
 
-void redirSTDOUT(char* fileName){
-
+void redirSTDOUT(char* fileName)
+{
 	int fd = open(fileName, O_CREAT| O_TRUNC | O_RDWR, 0644);
 	dup2(fd, STDOUT_FILENO);
 	close(fd);
 }
 
-void printLineInput(char* lineInput){
+void printLineInput(char* lineInput)
+{
 	char*ptr;
 	ptr = lineInput;
 	while(*ptr!='\0'){
@@ -306,8 +261,8 @@ void printLineInput(char* lineInput){
 	}
 }
 
-int checkRedirSymbol(char* lineInputCopy){
-
+int checkRedirSymbol(char* lineInputCopy)
+{
 	char*ptr;
 	ptr = lineInputCopy;
 	while(*ptr!='\0'){
@@ -319,31 +274,21 @@ int checkRedirSymbol(char* lineInputCopy){
 			return 2;
 		}
 	}
-	//printf("\n");
-	//char* redirSymbol;
-	//redirSymbol = strchr(lineInputCopy,'<');
-	//printf("RedirSymbol is: %s\n",redirSymbol);
-	// if(redirSymbol != NULL){
-	// 	return 1;
-	// 	}
 	return 0;
-
 }
 
 
-void execSingleCmd(char* lineInput, node headNode){
-
+void execSingleCmd(char* lineInput, node headNode)
+{
 	int status = 0;
 	pid_t pid;
 	char fileName[512];
 	char lineInputCopy[512];
+
 	strcpy(lineInputCopy, lineInput);
-	//printf("exec single cmd\n");
 	trimEndNull(lineInput);
 	strcpy(fileName, inputRedir(lineInput,"<>",&headNode));//if placed after input parse - segfault
-	//printf("filename in execSingleCmd: %s\n",fileName);
 	inputParse(lineInput, &headNode);
-	// strcpy(fileName, inputRedir(lineInput,"<>"));
 
 	builtinCommands(headNode);
 
@@ -351,43 +296,27 @@ void execSingleCmd(char* lineInput, node headNode){
 	if (pid != 0){
 		//Parent
 		waitpid(-1, &status, 0);
-
 		trimEndNull(lineInputCopy);
-		// printf("+ completed '");
-		// printLineInput(lineInput);
-		// fprintf(stderr, "' [%d]\n", status);
 		fprintf(stderr, "+ completed '%s' [%d]\n", lineInputCopy, status);
-
-	} else { //FIND OUT why not printing inside child
-			if(isError == 1 || isInterrupt == 1){
-				exit(0);
-			}
-			//redirSTDIN(fileName);
-
-			//checks for input redirection
-			if(checkRedirSymbol(lineInputCopy) == 1){
-				redirSTDOUT(fileName);
-			}
-			else if(checkRedirSymbol(lineInputCopy) == 2){
-				redirSTDIN(fileName);
-			}
-
-
-			//printf("*(headNode)->arrData: %s\n,(headNode)->arrData): %s\n",*(headNode)->arrData,(headNode)->arrData[1]);
-
-			//printArrData(headNode);
-			execvp(*(headNode)->arrData,(headNode)->arrData);
-			printf("\nhere is the error: %d\n",(errno));
-			perror("execvp");
-			exit(1);
-			//fprintf(stderr, "+ completed '%s' [%d]\n", "ls", status);
+	} else {
+		if(isError == 1 || isInterrupt == 1){
+			exit(0);
+		}//checks for input redirection
+		if(checkRedirSymbol(lineInputCopy) == 1){
+			redirSTDOUT(fileName);
+		}
+		else if(checkRedirSymbol(lineInputCopy) == 2){
+			redirSTDIN(fileName);
+		}
+		execvp(*(headNode)->arrData,(headNode)->arrData);
+		printf("\nhere is the error: %d\n",(errno));
+		perror("execvp");
+		exit(1);
 	}
-
 }
 
-
-void pipeParse(char* lineInput, node *headNode){
-
+void pipeParse(char* lineInput, node *headNode)
+{
 	struct LinkedList* currNode = *headNode;
 	char* rest = lineInput;
 	char* token = strtok_r(rest, "|",&rest);
@@ -397,113 +326,81 @@ void pipeParse(char* lineInput, node *headNode){
 		while(currNode->next != NULL){
 			currNode = currNode->next;
 		}
-
 		trimLeading(token);
-		//printf("Pipe#%d: %s\n",i+1,token);
 		append(&currNode,token);//Assigning of lines to the LinkedList
-    // printf("headNode->arrData[0]: %s\n", (*headNode)->arrData[0]);
-    // printf("headNode->next->arrData[0]: %s\n", (*headNode)->next->arrData[0]);
-		//inputParse(token, headNode);//inserting parsed commands into LinkedList
-		//printf("Pipe#%d: %s\n",i+1,token);
 		token = strtok_r(NULL,"|",&rest);
 		i++;
-
 	}
-
-	makePipe(i,*headNode);
-
+	makePipe(i,*headNode, lineInput);
 }
 
-void makePipe(int numCmds,node headNode){
+void makePipe(int numCmds,node headNode, char* lineInput)
+{
+	char lineInputCopy[512];
+	strcpy(lineInputCopy, lineInput);
 
+	char fileName[512];
 	int status;
 	int fdPrev[2];//pipe1
 	int fdCurr[2];//pipe2
 	fdPrev[1] = -1;
-
 	pid_t pid;
 	struct LinkedList* currNode = headNode;
 
-
-  for (int i = 0; i < numCmds; i++){
-
-		//FIXME for each cmds iterate through the currNode;
-    pipe(fdCurr);
-    pid = fork();
-    if(pid == 0){
-			//child
-			if(i == 0){
-
-				//first cmd
-				//check for redirect input
-				//redirSTDIN("file");
-				close(fdCurr[0]);
-				dup2(fdCurr[1],1);
-				//output to pipe
-				close(fdCurr[1]);
-				//dup2(fdCurr[1],STDOUT_FILENO);
-				//close(fdCurr[1]);
-				//printArrData(currNode);
-				execvp(*(currNode)->arrData,(currNode)->arrData);
-				fprintf(stderr,"Error: command not found\n");
-				exit(1);
-			}
-			else if (i == (numCmds-1)){
-
-				//last cmd
-				//check for redirect output
-				//redirSTDOUT("file");
-				dup2(fdPrev[0],0);
-				close(fdPrev[0]);
-				close(fdCurr[0]);
-				close(fdCurr[1]);
-				//printArrData(currNode);
-				execvp(*(currNode)->arrData,(currNode)->arrData);
-				fprintf(stderr,"Error: command not found\n");
-				exit(1);
-			}
-			else {
-				//printf("inside middle cmd\n");
-				close(fdCurr[0]);
-				dup2(fdPrev[0],0);
-				dup2(fdCurr[1],1);
-				close(fdPrev[0]);
-				//close(fdPrev[1]);
-				//close(fdCurr[0]);
-				close(fdCurr[1]);
-				//printArrData(currNode);
-				execvp(*(currNode)->arrData,(currNode)->arrData);
-				fprintf(stderr,"Error: command not found\n");
-				exit(1);
-			}
-		}
-
-		else if (pid < 0){
-			perror("fork");
-			exit(1);
-			//Error
-		}
-		else {
-			//Parent
+	strcpy(fileName, inputRedir(lineInput,"<>",&headNode));
+	for (int i = 0; i < numCmds; i++){
+	
+	pipe(fdCurr);
+	pid = fork();
+	if(pid == 0){
+		//child
+		if(i == 0){
+			//first command
+			close(fdCurr[0]);
+			dup2(fdCurr[1],1);
+			//output to pipe
 			close(fdCurr[1]);
-			currNode->pid = pid;
-			//take care of PID if have time
-
-		}
-		if (currNode->next != NULL){
-			//printf("node check: (%s)\n", currNode->arrData[0]);
-			//printArrData(currNode);
-			currNode = currNode->next;
-		}
-		/*
-		if( i != 0){
-			for (int i = 0; i < numCmds; i++)
-		}
-		*/
-		if(i != 0){
+			execvp(*(currNode)->arrData,(currNode)->arrData);
+			fprintf(stderr,"Error: command not found\n");
+			exit(1);
+		} else if (i == (numCmds-1)){
+			//last command
+			dup2(fdPrev[0],0);
 			close(fdPrev[0]);
+			close(fdCurr[0]);
+			close(fdCurr[1]);
+			execvp(*(currNode)->arrData,(currNode)->arrData);
+			fprintf(stderr,"Error: command not found\n");
+			exit(1);
+		} else {
+			//middle commands
+			close(fdCurr[0]);
+			dup2(fdPrev[0],0);
+			dup2(fdCurr[1],1);
+			close(fdPrev[0]);
+			close(fdCurr[1]);
+			execvp(*(currNode)->arrData,(currNode)->arrData);
+			fprintf(stderr,"Error: command not found\n");
+			exit(1);
 		}
-		fdPrev[0] = fdCurr[0];
+	}
+	else if (pid < 0){
+		perror("fork");
+		exit(1);
+		//Error
+	}
+	else {
+		//Parent
+		close(fdCurr[1]);
+		currNode->pid = pid;
+	}
+	if (currNode->next != NULL){
+		currNode = currNode->next;
+	}
+	if(i != 0){
+		close(fdPrev[0]);
+	}
+	fdPrev[0] = fdCurr[0];
 	}
 	close(fdCurr[0]);
 
@@ -515,100 +412,20 @@ void makePipe(int numCmds,node headNode){
 			}
 		}
 	}
+	//printing status of the pipe commands
+	currNode = headNode;
+	trimEndNull(lineInput);
 
+	fprintf(stderr,"+ completed '%s' ",lineInput);
+	while(currNode->next!=NULL){
+		printf("[%d]", currNode->status);
+		currNode = currNode->next;
+	}
+	printf("\n");
 }
 
-// void makePipe(int numCmds,node headNode){
-//
-// 	//int status;
-// 	int fdPrev[2];//pipe1
-// 	int fdCurr[2];//pipe2
-// 	//fdPrev[0] = -1;
-//
-// 	pid_t pid;
-// 	struct LinkedList* currNode = headNode;
-//
-//
-//   for (int i = 0; i < numCmds; i++){
-//
-// 		//FIXME for each cmds iterate through the currNode;
-//     pipe(fdCurr);
-//     pid = fork();
-//     if(pid == 0){
-// 			//child
-// 			if(i == 0){
-// 				//printf("inside first cmd\n");
-// 				//first cmd
-// 				//check for redirect input
-// 				//redirSTDIN("file");
-// 				close(fdCurr[0]);
-// 				dup2(fdCurr[1],STDOUT_FILENO);
-// 				close(fdCurr[1]);
-// 				printArrData(currNode);
-// 				execvp(*(currNode)->arrData,(currNode)->arrData);
-// 				fprintf(stderr,"Error: command not found\n");
-// 				exit(1);
-// 			}
-// 			else if (i == (numCmds-1)){
-// 				//printf("inside last command\n");
-// 				//last cmd
-// 				//check for redirect output
-// 				//redirSTDOUT("file");
-// 				dup2(fdPrev[0],STDOUT_FILENO);
-// 				close(fdPrev[0]);
-// 				close(fdCurr[0]);
-// 				close(fdCurr[1]);
-// 				printArrData(currNode);
-// 				execvp(*(currNode)->arrData,(currNode)->arrData);
-// 				fprintf(stderr,"Error: command not found\n");
-// 				exit(1);
-// 			}
-// 			else {
-// 				//printf("inside middle cmd\n");
-// 				close(fdCurr[0]);
-// 				dup2(fdPrev[0],STDIN_FILENO);
-// 				dup2(fdCurr[1],STDOUT_FILENO);
-// 				close(fdPrev[0]);
-// 				close(fdCurr[1]);
-// 				printArrData(currNode);
-// 				execvp(*(currNode)->arrData,(currNode)->arrData);
-// 				fprintf(stderr,"Error: command not found\n");
-// 				exit(1);
-// 			}
-// 		}
-//
-// 		else if (pid < 0){
-// 			perror("fork");
-// 			exit(1);
-// 			//Error
-// 		}
-// 		else {
-// 			//Parent
-// 			close(fdCurr[1]);
-// 			//take care of PID if have time
-//
-// 		}
-// 		if (currNode->next != NULL){
-// 			//printf("node check: (%s)\n", currNode->arrData[0]);
-// 			//printArrData(currNode);
-// 			currNode = currNode->next;
-// 		}
-// 		/*
-// 		if( i != 0){
-// 			for (int i = 0; i < numCmds; i++)
-// 		}
-// 		*/
-// 		if(i != 0){
-// 			close(fdPrev[0]);
-// 		}
-// 		fdPrev[0] = fdCurr[0];
-// 	}
-// 	close(fdCurr[0]);
-//
-// }
-
-
-int countPipes(char* lineInput){
+int countPipes(char* lineInput)
+{
 	int counter = 1;
 	size_t i = 0;
 	char lineInputCopy[MAX_NUM_CHARS+1];
@@ -620,39 +437,36 @@ int countPipes(char* lineInput){
 			counter++;
 		}
 	}
-
 	return counter;
 }
 
-void resetGlobalVars(){
+void resetGlobalVars()
+{
 	isError = 0;
 	isInterrupt = 0;
+}
+
+void missingCmd(char* cmd){
+
+	if(cmd[0] == '|'||cmd[0] == '<'||cmd[0] == '>'||cmd[0] == '&'){
+		isError = 1;
+		fprintf(stderr, "Error: missing command\n");
+	}
 }
 
 int main(int argc, char *argv[])  //first line comment//
 {
 	char cmd[512];
-
-  int numCmds = 0;
-
+ 	int numCmds = 0;
 
 	while(1){
-			resetGlobalVars();//resets isError and isInterrupt
-			node headNode = createNode();
-
-			//display_prompt();
-			//char *lineInput = get_input();
-
-
-
+		resetGlobalVars();//resets isError and isInterrupt
+		node headNode = createNode();
 		char *nl;
-
 		printf("sshell$ ");
 		fflush(stdout);
-
 		/* Get command line */
 		fgets(cmd, MAX_NUM_CHARS, stdin);
-
 		/* Print command line if we're not getting stdin from the
 		 * terminal */
 		if (!isatty(STDIN_FILENO)) {
@@ -664,26 +478,18 @@ int main(int argc, char *argv[])  //first line comment//
 		nl = strchr(cmd, '\n');
 		if (nl)
 			*nl = '\0';
-
-		/* Builtin command */
-		// if (!strcmp(cmd, "exit")) {
-		// 	fprintf(stderr, "Bye...\n");
-		// 	break;
-		// } else {
-		// 	fprintf(stderr, "Don't know how to handle command\n");
-		// }
 		numCmds = countPipes(cmd);
-		//printf("numCmds: %d\n",numCmds);
-		//printf("%d\n",numCmds);
-		if(numCmds == 1){
-			execSingleCmd(cmd,headNode);
+		missingCmd(cmd);
+		if(isError == 1 || isInterrupt == 1){
 		}
 		else{
-			pipeParse(cmd,&headNode);
+			if(numCmds == 1){
+				execSingleCmd(cmd,headNode);
 			}
-
-
+			else{
+				pipeParse(cmd,&headNode);
+				}
+			}
 	}
-
 	return EXIT_SUCCESS;
 }
