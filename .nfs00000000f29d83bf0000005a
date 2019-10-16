@@ -11,16 +11,15 @@
 #define MAX_NUM_ARGS 16
 #define MAX_NUM_CHARS 512
 
-//global variables to catch errors at various stages of execution
 int isError = 0;
 int isInterrupt = 0;
 
 struct LinkedList
 {
-	char* arrData[MAX_NUM_ARGS];//array of pointers that stores parsed args of a cmd and cmd itself
+	char* arrData[MAX_NUM_ARGS];
 	struct LinkedList *next;
 	int pid;
-	int status;//return status of the cmds when piping
+	int status;
 };
 
 typedef struct LinkedList *node;
@@ -44,20 +43,20 @@ int cmprStr(node headNode, char *str1)
 {
 	int result = strcmp(headNode->arrData[0],str1);
 	return result;
-}//compares the string and if equals, returns 0
+}
 
 
 void trimLeading(char * str)
 {
 	int index, i;
 	index = 0;
-	// Find last index of whitespace character
+	/* Find last index of whitespace character */
 	while(str[index] == ' ' || str[index] == '\t' || str[index] == '\n')
 	{
 		index++;
 	}
 	if(index != 0){
-	// Shift all trailing characters to its left
+	/* Shift all trailing characters to its left */
 		i = 0;
 	while(str[i + index] != '\0'){
 		str[i] = str[i + index];
@@ -109,11 +108,11 @@ int display_prompt()
 {
 	printf("sshell$ ");
 	return 0;
-}//redundant after using the provided prompt display (for compatibility with the testing script
+}
 
 char* get_input()
 {
-	char* input;
+  char* input;
 	input = (char*)malloc(MAX_NUM_CHARS + 1);
 	fgets(input,MAX_NUM_CHARS + 1,stdin);
 	return input;
@@ -137,22 +136,23 @@ void isPwd(node headNode)
 		printf("\n");
 		isInterrupt = 1;//to prevent execvp from running pwd
 	}
+
 }
 
 void printArrData(node headNode)
 {
+	//printf("inside printArrData, length: %ld\n",strlen(*(headNode)->arrData));
 	for (int i = 0; i < MAX_NUM_ARGS; i++){
 		printf("element number %d: %s\n",i,headNode->arrData[i]);
 	}
-}//prints each element of the array within the given node (not every node)
-
+}
 void isCD(node headNode)
 {
 	if(cmprStr(headNode,"cd") == 0){
 			isInterrupt = 1;
 		if(chdir(headNode->arrData[1]) == 0){
-		} else {
-			fprintf(stderr, "%s\n","Error: no such directory");
+		} else{
+				fprintf(stderr, "%s\n","Error: no such directory");
 		}
 	}
 }
@@ -162,7 +162,7 @@ void builtinCommands(node headNode)
 	isExit(headNode);
 	isPwd(headNode);
 	isCD(headNode);
-}//checks whether pwd or cd or exit cmd has been used
+}
 
 void trimEndNull(char* str)
 {
@@ -182,7 +182,7 @@ char* inputRedir(char* lineInput, char* delim,node* headNode)
 				tokenRedir = strtok_r(NULL,delim,&rest);
 			} else if(j == 1){
 				fileName = tokenRedir;
-			} else {
+			} else{
 				break;
 			}
 			j++;
@@ -285,7 +285,7 @@ void pipeParse(char* lineInput, node *headNode)
 		i++;
 	}
 	makePipe(i,*headNode, lineInput);
-}//parses user input into cmds and adds them to the linkedList in the final format, ready for pipe creation in the makePipe
+}
 
 void makePipe(int numCmds,node headNode, char* lineInput)
 {
@@ -391,13 +391,13 @@ int countPipes(char* lineInput)
 		}
 	}
 	return counter;
-}//counts number of | chars in the user input
+}
 
 void resetGlobalVars()
 {
 	isError = 0;
 	isInterrupt = 0;
-}//resets global interrupt variables
+}
 
 void missingCmd(char* cmd){
 
@@ -405,7 +405,7 @@ void missingCmd(char* cmd){
 		isError = 1;
 		fprintf(stderr, "Error: missing command\n");
 	}
-}//checks whether user input starts inappropriately
+}
 
 int main(int argc, char *argv[])  //first line comment//
 {
@@ -415,18 +415,19 @@ int main(int argc, char *argv[])  //first line comment//
 	while(1){
 		resetGlobalVars();//resets isError and isInterrupt
 		node headNode = createNode();
-	
 		char *nl;
 		printf("sshell$ ");
-		fflush(stdout);// Get command line
-		
+		fflush(stdout);
+		/* Get command line */
 		fgets(cmd, MAX_NUM_CHARS, stdin);
-		// Print command line if we're not getting stdin from the terminal
-		
+		/* Print command line if we're not getting stdin from the
+		 * terminal */
 		if (!isatty(STDIN_FILENO)) {
 			printf("%s", cmd);
 			fflush(stdout);
-		} // Remove trailing newline from command line */
+		}
+
+		/* Remove trailing newline from command line */
 		nl = strchr(cmd, '\n');
 		if (nl)
 			*nl = '\0';
@@ -437,11 +438,11 @@ int main(int argc, char *argv[])  //first line comment//
 		else{
 			if(numCmds == 1){
 				execSingleCmd(cmd,headNode);
-			}//single command
+			}
 			else{
 				pipeParse(cmd,&headNode);
-			}//multiple commands
-		}
+				}
+			}
 	}
 	return EXIT_SUCCESS;
 }
