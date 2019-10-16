@@ -14,6 +14,7 @@
 //global variables to catch errors at various stages of execution
 int isError = 0;
 int isInterrupt = 0;
+char lineInputToPrint[MAX_NUM_CHARS];
 
 struct LinkedList
 {
@@ -367,9 +368,9 @@ void makePipe(int numCmds,node headNode, char* lineInput)
 	}
 	//printing status of the pipe commands
 	currNode = headNode;
-	trimEndNull(lineInput);
+	trimEndNull(lineInputToPrint);
 
-	fprintf(stderr,"+ completed '%s' ",lineInput);
+	fprintf(stderr,"+ completed '%s' ",lineInputToPrint);
 	while(currNode->next!=NULL){
 		printf("[%d]", currNode->status);
 		currNode = currNode->next;
@@ -415,14 +416,14 @@ int main(int argc, char *argv[])  //first line comment//
 	while(1){
 		resetGlobalVars();//resets isError and isInterrupt
 		node headNode = createNode();
-	
+
 		char *nl;
 		printf("sshell$ ");
 		fflush(stdout);// Get command line
-		
+
 		fgets(cmd, MAX_NUM_CHARS, stdin);
 		// Print command line if we're not getting stdin from the terminal
-		
+		strcpy(lineInputToPrint, cmd);
 		if (!isatty(STDIN_FILENO)) {
 			printf("%s", cmd);
 			fflush(stdout);
