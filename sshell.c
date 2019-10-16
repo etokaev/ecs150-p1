@@ -48,60 +48,26 @@ int cmprStr(node headNode, char *str1)
 
 void trimLeading(char * str)
 {
-    int index, i;
-    index = 0;
-    /* Find last index of whitespace character */
-    while(str[index] == ' ' || str[index] == '\t' || str[index] == '\n')
-    {
-        index++;
-    }
-    if(index != 0)
-    {
-        /* Shift all trailing characters to its left */
-        i = 0;
-        while(str[i + index] != '\0')
-        {
-            str[i] = str[i + index];
-            i++;
-        }
-        str[i] = '\0'; // Make sure that string is NULL terminated
-    }
-}//FIXME https://codeforwin.org/2016/04/c-program-to-trim-leading-white-spaces-in-string.html
-
-int arrDataSearch(node headNode, char* token)
-{
-	int i = 0;
-	while(headNode->arrData[i] != NULL){
-		if(strcmp(headNode->arrData[i],token) == 0){
-				//found tokenf
-				printf("found token: %d\n",i);
-				return i;
-		}
+	int index, i;
+	index = 0;
+	/* Find last index of whitespace character */
+	while(str[index] == ' ' || str[index] == '\t' || str[index] == '\n')
+	{
+		index++;
+	}
+	if(index != 0){
+	/* Shift all trailing characters to its left */
+		i = 0;
+	while(str[i + index] != '\0'){
+		str[i] = str[i + index];
 		i++;
+        }
+	str[i] = '\0'; // Make sure that string is NULL terminated
 	}
-
-	return -1;
-}
-
-node addNode(node head){
-	node temp1, temp2;
-	temp1 = createNode();
-
-	if(head == NULL){
-		head = temp1;
-	}//when empty list
-	else{
-		temp2 = head;
-		while(temp2->next != NULL){
-			temp2 = temp2->next;
-		}
-		temp2->next = temp1;
-	}
-	return head;
-}
+}//From https://codeforwin.org/2016/04/c-program-to-trim-leading-white-spaces-in-string.html
 
 void inputParse(char *lineInput, node *headNode)
-{ 
+{
 	// for any NODE works
 
 	char* token1 = strtok(lineInput, " \n");
@@ -109,12 +75,12 @@ void inputParse(char *lineInput, node *headNode)
 	while(token1){
 		if(i >= 16){
 			fprintf(stderr, "%s\n","Error: too many process arguments" );
-			isError = 1;			
+			isError = 1;
 		}
 		trimLeading(token1);
 		trimEndNull(token1);
 		(*headNode)->arrData[i] = token1;
-		
+
 		i++;
 		token1 = strtok(NULL," \n");
 	}
@@ -129,13 +95,13 @@ void append(struct LinkedList** head,char* cmd)
 	inputParse(cmd,head);
 	new_node->next = NULL;
 	if(*head == NULL){
-	*head = new_node;
-	return;
+		*head = new_node;
+		return;
 	}
   	while (last->next != NULL){
-    		last = last->next;
+		last = last->next;
   	}
-  	last->next = new_node;
+	last->next = new_node;
 }
 
 int display_prompt()
@@ -183,10 +149,10 @@ void printArrData(node headNode)
 void isCD(node headNode)
 {
 	if(cmprStr(headNode,"cd") == 0){
-		isInterrupt = 1;
+			isInterrupt = 1;
 		if(chdir(headNode->arrData[1]) == 0){
 		} else{
-			fprintf(stderr, "%s\n","Error: no such directory");
+				fprintf(stderr, "%s\n","Error: no such directory");
 		}
 	}
 }
@@ -309,7 +275,7 @@ void pipeParse(char* lineInput, node *headNode)
 	char* token = strtok_r(rest, "|",&rest);
 	int i = 0;
 	while(token){
-		//addNode(*headNode);
+
 		while(currNode->next != NULL){
 			currNode = currNode->next;
 		}
@@ -336,7 +302,7 @@ void makePipe(int numCmds,node headNode, char* lineInput)
 
 	strcpy(fileName, inputRedir(lineInput,"<>",&headNode));
 	for (int i = 0; i < numCmds; i++){
-	
+
 	pipe(fdCurr);
 	pid = fork();
 	if(pid == 0){
