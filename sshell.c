@@ -109,14 +109,12 @@ void inputParse(char *lineInput, node *headNode)
 	while(token1){
 		if(i >= 16){
 			fprintf(stderr, "%s\n","Error: too many process arguments" );
-			isError = 1;
-			
+			isError = 1;			
 		}
-
 		trimLeading(token1);
 		trimEndNull(token1);
 		(*headNode)->arrData[i] = token1;
-
+		
 		i++;
 		token1 = strtok(NULL," \n");
 	}
@@ -125,24 +123,20 @@ void inputParse(char *lineInput, node *headNode)
 
 void append(struct LinkedList** head,char* cmd)
 {
-  struct LinkedList* new_node = createNode();
-  struct LinkedList *last = *head;
-
-  //check for redirect and save to filename if there is redirect
-  inputParse(cmd,head);
-  new_node->next = NULL;
-
-
-  if(*head == NULL){
-    *head = new_node;
-    return;
-  }
-  while (last->next != NULL){
-    last = last->next;
-  }
-  last->next = new_node;
+	struct LinkedList* new_node = createNode();
+	struct LinkedList *last = *head;
+ 	//check for redirect and save to filename if there is redirect
+	inputParse(cmd,head);
+	new_node->next = NULL;
+	if(*head == NULL){
+	*head = new_node;
+	return;
+	}
+  	while (last->next != NULL){
+    		last = last->next;
+  	}
+  	last->next = new_node;
 }
-
 
 int display_prompt()
 {
@@ -215,28 +209,22 @@ char* inputRedir(char* lineInput, char* delim,node* headNode)
 		char* rest = lineInput;
 		strcpy(rest, lineInput);
 		char* tokenRedir = strtok_r(rest, delim,&rest);
-
 		int j = 0;
 
 		while(tokenRedir){
-
 			if(j == 0){
-
-
 				tokenRedir = strtok_r(NULL,delim,&rest);
-			}else if(j == 1){
+			} else if(j == 1){
 				fileName = tokenRedir;
-			}else{
+			} else{
 				break;
 			}
-
 			j++;
-
 		}//extracts filename from lineInput
 		trimLeading(fileName);
-
 		return fileName;
 }
+
 void redirSTDIN(char* fileName)
 {
 	int fd = open(fileName, 0);
@@ -291,7 +279,6 @@ void execSingleCmd(char* lineInput, node headNode)
 	inputParse(lineInput, &headNode);
 
 	builtinCommands(headNode);
-
 	pid = fork();
 	if (pid != 0){
 		//Parent
